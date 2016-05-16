@@ -1,0 +1,31 @@
+{
+  "name": "makerspace-tracker",
+  "version": "0.2.5",
+  "description": "Database and Web App for tracking 3D prints",
+  "engines": {
+    "node": "5.9.1"
+  },
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.15.1",
+    "ejs": "^2.4.1",
+    "express": "4.13.3",
+    "fs": "0.0.2",
+    "moment": "^2.13.0",
+    "multer": "^1.1.0",
+    "pg": "4.x",
+    "pg-hstore": "^2.3.2",
+    "pug": "^2.0.0-alpha7",
+    "pug-load": "^1.0.3",
+    "randomstring": "^1.1.4",
+    "sequelize": "^3.23.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scholarslab/makerspace-tracker"
+  },
+  "license": "MIT"
+}

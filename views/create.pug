@@ -1,0 +1,41 @@
+extends layout
+
+block content
+  - var headers = [ "Patron", "Grade", "Department", "Tech", "Date Created", "Printer Setup", "Notes", "Image", "Print File" ]
+  #print-form
+    form(action='/', method='post', enctype='multipart/form-data')
+      .row
+        .col.s6
+          input(type='text', id='patron_id', placeholder='Patron ID', name='patron_id')
+          input(list='grade', id='patron_grade', placeholder='Patron Grade', name='patron_grade')
+          datalist#grade
+            option(value='Undergraduate')
+            option(value='Graduate')
+            option(value='Faculty')
+            option(value='Other')
+          input(type='text', id='patron_department', placeholder='Patron Department', name='patron_department')
+          input(type='text', id='tech_id', placeholder='Tech ID', name='tech_id')
+          .row
+            .col.s6
+              p: strong Date/Time Started
+              input(type='datetime-local', id='date_started', name='date_started' value='#{today}')
+            .col.s6
+              p: strong Date/Time Finished
+              input(type='datetime-local', id='date_finished', name='date_finished')
+
+          textarea(id='printer_setup', placeholder='Printer Settings', name='printer_setup')
+          textarea(id='notes', placeholder='Notes', name='notes')
+          input(type='file', id='print_file', name='print_file')
+          p: input(type='submit', class='btn waves-effect waves-light green' id='submit', name='submit' value='Save')
+
+        .col.s6
+          input(type='hidden', id='image_file', name='image_file' value='')
+          script(src="webcam.js")
+          #live_camera(style="width:320px; height:240px;margin:8px;")
+          #snapshot()
+          script(src='pics.js')
+          a.btn.waves-effect.waves-light(href="javascript:void(take_snapshot())") Take Snapshot
+
+
+
+

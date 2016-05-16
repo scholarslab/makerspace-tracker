@@ -1,0 +1,16 @@
+extends layout
+
+block content
+  - var headers = [ "Patron", "Grade", "Department", "Tech", "Date Created", "Printer Setup", "Notes", "Image", "Print File" ]
+  #table-content
+    table.striped
+      thead
+          tr
+          each header in headers
+            th= header
+
+      tbody
+        tr
+        each row in results
+          td= row
+
