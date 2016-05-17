@@ -51,8 +51,8 @@ app.use(express.static(__dirname + '/public'));
 app.set('views', __dirname + '/views');
 app.set('view engine', 'pug');
 
-app.locals.image_path = __dirname + '/files/images/';
-app.locals.shape_path = __dirname + '/files/shapes/';
+app.locals.image_path = '/files/images/';
+app.locals.shape_path = '/files/shapes/';
 
 /******************************
   * Routes
@@ -84,7 +84,7 @@ app.post('/', upload.single('print_file'), function(req, res, next) {
     var image_name = req.app.locals.image_path + date_time + '-' + rstring.generate({length:11}) + '.jpg';
     // save print file to disk
     // http://stackoverflow.com/questions/20267939/nodejs-write-base64-image-file
-    fs.writeFile(image_name, req.body.image_file, {encoding: 'base64'}, function(err){ res.render('create'); });
+    fs.writeFile(__dirname + image_name, req.body.image_file, {encoding: 'base64'}, function(err){ res.render('create'); });
   }
 
   // add info to the database
