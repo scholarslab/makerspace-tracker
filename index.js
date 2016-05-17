@@ -73,11 +73,10 @@ app.get('/prints', function (request, response) {
   });
 });
 
-app.post('/', upload.single('print_file'), function(req, res) {
+app.post('/', upload.single('print_file'), function(req, res, next) {
 
   // shape file is handled with 'multer' 
   if (req.body.image_file !== '') {
-    console.log('image file');
     // get image data and convert from base64 to file and save to disk
     // generate name for image file and store the path in the database
     // http://stackoverflow.com/questions/10645994/node-js-how-to-format-a-date-string-in-utc
@@ -89,13 +88,10 @@ app.post('/', upload.single('print_file'), function(req, res) {
   }
 
   // add info to the database
-  /*
   pg.connect(process.env.DATABASE_URL, function(err, client, done) {
     client.query({
-      text: 'INSERT INTO prints (patron_id, patron_grade, patron_department, tech_id, date_started, date_finished, printer_setup, notes, image_file, print_file) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', values: [req.body.patron_id, req.body.patron_grade, req.body.patron_department, req.body.tech_id, req.body.date_started, req.body.date_finished, req.body.printer_setup, req.body.notes, image_name, req.file.path] });
+      text: 'INSERT INTO prints (patron_id, patron_grade, patron_department, tech_id, date_started, date_finished, printer_setup, notes, image_file, print_file) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', values: [req.body.patron_id, req.body.patron_grade.toLowerCase(), req.body.patron_department, req.body.tech_id, req.body.date_started, req.body.date_finished, req.body.printer_setup, req.body.notes, image_name, req.file.path] });
   });
-  */
-  res.render('create');
 });
 
 
