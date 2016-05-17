@@ -2,24 +2,23 @@
 
 Database for tracking 3D prints in the Makerspace.
 
-# Dev usage
+- Uses Node.js and Express.js with a PostgreSQL Database
 
-Clone to a directory
+# Dev Usage
 
+- Clone to a directory
 ```
 git clone https://github.com/scholarslab/makerspace-tracker.git
 ```
 
-Install the dependencies
-
+- Install the dependencies
 ```
 npm install
 ```
 
-Run the server locally
-
+- Run the server locally
 ```
-node index.js
+npm run dev
 ```
 
 View the website in the browser: http://localhost:5000/
