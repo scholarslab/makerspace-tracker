@@ -25,6 +25,7 @@ View the website in the browser: http://localhost:5000/
 
 # ToDo Next:
 - get everything inserting into the database correctly
+  - What to do if no value supplied?
 - Hosting on Heroku?
   - Write out steps to get on Heroku
   - S3 storage for the files and images
