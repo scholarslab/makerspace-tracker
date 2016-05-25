@@ -1,6 +1,11 @@
 extends layout
 
 block content
+  if errors
+    ul.card-panel.red.white-text
+      for error in errors
+        li!= error.msg
+
   - var headers = [ "Patron", "Grade", "Department", "Tech", "Date Created", "Printer Setup", "Notes", "Image", "Print File" ]
   #print-form
     form(action='/', method='post', enctype='multipart/form-data')
