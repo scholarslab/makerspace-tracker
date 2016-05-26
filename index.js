@@ -2,6 +2,7 @@
   * Requireds
 ******************************/
 var express = require('express');
+var util = require('util');
 var pg = require('pg');
 var fs = require('fs');
 var path = require('path');
@@ -9,7 +10,6 @@ var crypto = require('crypto');
 var moment = require('moment');
 var rstring = require('randomstring');
 var multer = require('multer');
-var util = require('util');
 var valid = require('express-validator');
 
 
@@ -45,6 +45,7 @@ var storage = multer.diskStorage({
 });
 
 var upload = multer({ storage: storage });
+app.use(valid());
 
 // Set the port to listen on
 app.set('port', (process.env.PORT || 5000));
@@ -59,8 +60,8 @@ app.set('view engine', 'pug');
 // global variables
 app.locals.image_path = '/files/images/';
 app.locals.shape_path = '/files/shapes/';
+app.locals.moment = require('moment');
 
-app.use(valid());
 
 /******************************
   * Routes
@@ -109,11 +110,11 @@ app.post('/', upload.single('print_file'), function(req, res) {
   var date_created = rightNow;
   var date_modified =  rightNow;
 
-  var date_started = moment(req.body.date_started).format('YYYY-MM-DD HH:MM:SS');
-  req.checkBody('date_started', 'Please enter a valid start date').notEmpty().isDate();
-
   var date_finished = moment(req.body.date_finished).format('YYYY-MM-DD HH:MM:SS');
   req.checkBody('date_finished', 'Please enter a valid finished date').notEmpty().isDate();
+
+  var date_started = moment(req.body.date_started).format('YYYY-MM-DD HH:MM:SS');
+  req.checkBody('date_started', 'Please enter a valid start date (must be before date finished)').notEmpty().isDate().isBefore(date_finished);
 
   var printer_setup = req.body.printer_setup;
   req.checkBody('tech_id', 'Tech ID must not be empty').optional().isAlphanumeric();
@@ -127,11 +128,19 @@ app.post('/', upload.single('print_file'), function(req, res) {
     path = req.file.path;
   }
 
+  if (req.body.image_file !== '') {
+    req.checkBody('image_file', 'Image not an image file').optional().isBase64();
+  }
 
+  console.log(path);
   // Validation Errors
   var valErrors = req.validationErrors(true);
   if (valErrors) {
-    res.render('create', {errors: valErrors} );
+    res.render('create', {errors: valErrors, fields: req.body} );
+    if(path !== '') {
+      // delete the uploaded file
+      fs.unlink(path);
+    }
     return;
   } else {
     // add info to the database
@@ -150,7 +159,6 @@ app.post('/', upload.single('print_file'), function(req, res) {
     
     // image file is handled here
     if (req.body.image_file !== '') {
-      req.checkBody('image_file', 'Image not an image file').optional().isBase64();
       // get image data and convert from base64 to file and save to disk
       // generate name for image file and store the path in the database
       // http://stackoverflow.com/questions/10645994/node-js-how-to-format-a-date-string-in-utc

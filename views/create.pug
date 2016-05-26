@@ -4,32 +4,43 @@ block content
   if errors
     ul.card-panel.red.white-text
       for error in errors
-        li!= error.msg
+        li= error.msg
 
-  - var headers = [ "Patron", "Grade", "Department", "Tech", "Date Created", "Printer Setup", "Notes", "Image", "Print File" ]
+  if fields
+    - var patronID = fields.patron_id
+    - var patronGRD = fields.patron_grade
+    - var patronDPT = fields.patron_department
+    - var techID = fields.tech_id
+    - var finished = moment(fields.date_finished).format('YYYY-MM-DD[T]kk:mm')
+    - var started = moment(fields.date_started).format('YYYY-MM-DD[T]kk:mm')
+    - var printer = fields.printer_setup
+    - var notes = fields.notes
+  else
+    - var started = moment().format('YYYY-MM-DD[T]kk:mm');
+
   #print-form
     form(action='/', method='post', enctype='multipart/form-data')
       .row
         .col.s6
-          input(type='text', id='patron_id', placeholder='Patron ID', name='patron_id')
-          input(list='grade', id='patron_grade', placeholder='Patron Grade', name='patron_grade')
+          input(type='text', id='patron_id', placeholder='Patron ID (required)', name='patron_id' value=patronID)
+          input(list='grade', id='patron_grade', placeholder='Patron Grade (required)', name='patron_grade' value=patronGRD)
           datalist#grade
             option(value='Undergraduate')
             option(value='Graduate')
             option(value='Faculty')
             option(value='Other')
-          input(type='text', id='patron_department', placeholder='Patron Department', name='patron_department')
-          input(type='text', id='tech_id', placeholder='Tech ID', name='tech_id')
+          input(type='text', id='patron_department', placeholder='Patron Department (required)', name='patron_department' value=patronDPT)
+          input(type='text', id='tech_id', placeholder='Tech ID (required)', name='tech_id' value=techID)
           .row
             .col.s6
-              p: strong Date/Time Started
-              input(type='datetime-local', id='date_started', name='date_started' value='#{today}')
+              p: strong Date/Time Started (required)
+              input(type='datetime-local', id='date_started', name='date_started' value=started)
             .col.s6
-              p: strong Date/Time Finished
-              input(type='datetime-local', id='date_finished', name='date_finished')
+              p: strong Date/Time Finished (required)
+              input(type='datetime-local', id='date_finished', name='date_finished' value=finished)
 
-          textarea(id='printer_setup', placeholder='Printer Settings', name='printer_setup')
-          textarea(id='notes', placeholder='Notes', name='notes')
+          textarea(id='printer_setup', placeholder='Printer Settings: \n\tnozzle size: \n\tfilament type: \n\tfilament color:', name='printer_setup') #{printer}
+          textarea(id='notes', placeholder='Notes', name='notes') #{notes}
           input(type='file', id='print_file', name='print_file')
           p: input(type='submit', class='btn waves-effect waves-light green' id='submit', name='submit' value='Save')
 
