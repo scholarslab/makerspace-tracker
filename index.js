@@ -34,10 +34,10 @@ var storage = multer.diskStorage({
     // https://github.com/expressjs/multer/issues/170
     // If shape file, save with .stl
     if ( file.mimetype == 'application/octet-stream' ){
-        var date_time = new Date().toISOString().replace(/:/g, '-').substr(0,19);
-        var file_ext = path.extname(file.originalname);
-        var file_name = path.basename(file.originalname, file_ext);
-        cb(null, date_time + '-' + file_name + '-' + rstring.generate({length:8}) + file_ext);
+        var nameDateTime = new Date().toISOString().replace(/:/g, '-').substr(0,19);
+        var fileExt = path.extname(file.originalname);
+        var fileName = path.basename(file.originalname, file_ext);
+        cb(null, nameDateTime + '-' + fileName + '-' + rstring.generate({length:8}) + fileExt);
     } else {
       // return error that only accepts certain file types
     }
@@ -68,9 +68,8 @@ app.locals.moment = require('moment');
 ******************************/
 // Home Page: 
 // http://localhost/
-app.get('/', function(request, response) {
-  var date_time = moment().format('YYYY-MM-DD HH:MM:SS');
-  response.render('create');
+app.get('/', function(req, res) {
+  res.render('create');
 });
 
 // Results Page:
@@ -95,67 +94,53 @@ app.post('/', upload.single('print_file'), function(req, res) {
   var rightNow = moment().format('YYYY-MM-DD HH:MM:SS');
   
   // Filter input
-  var patron_id = req.body.patron_id;
+  var patronID = req.body.patron_id;
   req.checkBody('patron_id', 'Patron ID must not be empty').notEmpty().isAlphanumeric();
 
-  var patron_grade = req.body.patron_grade.toLowerCase();
+  var patronGrade = req.body.patron_grade.toLowerCase();
   req.checkBody('patron_grade', 'Patron Grade must be one of Undergraduate, Graduate, Faculty, or Other.').notEmpty().isAlpha();
 
-  var patron_dept = req.body.patron_department;
+  var patronDept = req.body.patron_department;
   req.checkBody('patron_department', 'Patron Department must not be empty').notEmpty().isAlpha();
 
-  var tech_id = req.body.tech_id;
+  var techID = req.body.tech_id;
   req.checkBody('tech_id', 'Tech ID must not be empty').notEmpty().isAlphanumeric();
 
-  var date_created = rightNow;
-  var date_modified =  rightNow;
+  var dateCreated = rightNow;
+  var dateModified =  rightNow;
 
-  var date_finished = moment(req.body.date_finished).format('YYYY-MM-DD HH:MM:SS');
+  var dateFinished = moment(req.body.date_finished).format('YYYY-MM-DD HH:MM:SS');
   req.checkBody('date_finished', 'Please enter a valid finished date').notEmpty().isDate();
 
-  var date_started = moment(req.body.date_started).format('YYYY-MM-DD HH:MM:SS');
-  req.checkBody('date_started', 'Please enter a valid start date (must be before date finished)').notEmpty().isDate().isBefore(date_finished);
+  var dateStarted = moment(req.body.date_started).format('YYYY-MM-DD HH:MM:SS');
+  req.checkBody('date_started', 'Please enter a valid start date (must be before date finished)').notEmpty().isDate().isBefore(dateFinished);
 
-  var printer_setup = req.body.printer_setup;
+  var printerSetup = req.body.printer_setup;
   req.checkBody('tech_id', 'Tech ID must not be empty').optional().isAlphanumeric();
 
   var notes = req.body.notes;
   req.checkBody('tech_id', 'Tech ID must not be empty').optional().isAlphanumeric();
 
   // print_file is taken care of with multer, code above.
-  var path = '';
+  var shapePath = '';
   if (req.file !== undefined){
-    path = req.file.path;
+    shapePath = req.file.path;
   }
 
   if (req.body.image_file !== '') {
     req.checkBody('image_file', 'Image not an image file').optional().isBase64();
   }
 
-  console.log(path);
   // Validation Errors
   var valErrors = req.validationErrors(true);
   if (valErrors) {
     res.render('create', {errors: valErrors, fields: req.body} );
-    if(path !== '') {
+    if(shapePath !== '') {
       // delete the uploaded file
-      fs.unlink(path);
+      fs.unlink(shapePath);
     }
     return;
   } else {
-    // add info to the database
-    pg.connect(dbCon, function(err, client, done) {
-      if(err) {
-        return console.error('error fetching client from pool', err);
-      }
-      client.query('INSERT INTO prints (patron_id, patron_grade, patron_department, tech_id, date_created, date_modified, date_started, date_finished, printer_setup, notes, image_file, print_file) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)', [patron_id, patron_grade, patron_dept, tech_id, date_created, date_modified, date_started, date_finished, printer_setup, notes, image_name, path] , function(err, result) {
-        done();
-        if(err) {
-          return console.error('error running query', err);
-        }
-        // handle an error from the query
-      });
-    });
     
     // image file is handled here
     if (req.body.image_file !== '') {
@@ -163,11 +148,34 @@ app.post('/', upload.single('print_file'), function(req, res) {
       // generate name for image file and store the path in the database
       // http://stackoverflow.com/questions/10645994/node-js-how-to-format-a-date-string-in-utc
       var nameDate = moment().format('YYYY-MM-DD-HH-MM-SS');
-      var image_name = req.app.locals.image_path + nameDate + '-' + rstring.generate({length:11}) + '.jpg';
+      var imageName = req.app.locals.image_path + nameDate + '-' + rstring.generate({length:11}) + '.jpg';
+      var imagePath = __dirname + imageName;
       // save print file to disk
       // http://stackoverflow.com/questions/20267939/nodejs-write-base64-image-file
-      fs.writeFile(__dirname + image_name, req.body.image_file, {encoding: 'base64'}, function(err){ res.render('create'); });
+      fs.writeFile(imagePath, req.body.image_file, {encoding: 'base64'}, function(err){ res.render('create'); });
     }
+
+    // add info to the database
+    pg.connect(dbCon, function(err, client, done) {
+      if(err) {
+        return console.error('error fetching client from pool', err);
+      }
+      client.query('INSERT INTO prints (patron_id, patron_grade, patron_department, tech_id, date_created, date_modified, date_started, date_finished, printer_setup, notes, image_file, print_file) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)', [patronID, patronGrade, patronDept, techID, dateCreated, dateModified, dateStarted, dateFinished, printerSetup, notes, imagePath, shapePath] , function(dberr, result) {
+        done();
+        if(dberr) {
+          res.render('create', {dbErr: dberr, fields: req.body} );
+          if(shapePath !== '') {
+            // delete the uploaded file
+            fs.unlink(shapePath);
+          }
+          if (req.body.image_file !== '') {
+            fs.unlink(fullName);
+          }
+          return console.error('error running query', dberr);
+        }
+        // handle an error from the query
+      });
+    });
 
     res.render('create');
   }
