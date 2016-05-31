@@ -155,7 +155,11 @@ app.post('/', upload.single('print_file'), function(req, res) {
       var imagePath = __dirname + imageName;
       // save print file to disk
       // http://stackoverflow.com/questions/20267939/nodejs-write-base64-image-file
-      fs.writeFile(imagePath, req.body.image_file, {encoding: 'base64'}, function(err){ res.render('create'); });
+      fs.writeFile(imagePath, req.body.image_file, {encoding: 'base64'}, function(err){ 
+        if (err) {
+          res.render('create', {errors: 'Image file did not save.', fields: req.body});
+        }
+      });
     }
 
     // add info to the database
@@ -182,8 +186,6 @@ app.post('/', upload.single('print_file'), function(req, res) {
     res.render('create');
   }
 
-
-    console.log('here');
 });
 
 
