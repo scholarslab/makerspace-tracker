@@ -1,9 +1,8 @@
-CREATE TYPE GRADE AS ENUM ('faculty', 'graduate', 'undergraduate', 'other');
 
 CREATE TABLE IF NOT EXISTS prints (
   print_id SERIAL PRIMARY KEY,
   patron_id VARCHAR (50) NOT NULL,
-  patron_grade GRADE,
+  patron_grade VARCHAR (100) NOT NULL,
   patron_department VARCHAR (100) NOT NULL,
   tech_id VARCHAR (20) NOT NULL,
   date_created TIMESTAMP NOT NULL DEFAULT CURRENT_DATE,

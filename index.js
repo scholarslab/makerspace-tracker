@@ -36,7 +36,7 @@ var storage = multer.diskStorage({
     if ( file.mimetype == 'application/octet-stream' ){
         var nameDateTime = new Date().toISOString().replace(/:/g, '-').substr(0,19);
         var fileExt = path.extname(file.originalname);
-        var fileName = path.basename(file.originalname, file_ext);
+        var fileName = path.basename(file.originalname, fileExt);
         cb(null, nameDateTime + '-' + fileName + '-' + rstring.generate({length:8}) + fileExt);
     } else {
       // return error that only accepts certain file types
@@ -91,14 +91,14 @@ app.get('/prints', function (request, response) {
 // http://localhost/
 app.post('/', upload.single('print_file'), function(req, res) {
 
-  var rightNow = moment().format('YYYY-MM-DD HH:MM:SS');
+  var rightNow = moment().format('YYYY-MM-DD kk:mm:ss');
   
   // Filter input
   var patronID = req.body.patron_id;
   req.checkBody('patron_id', 'Patron ID must not be empty').notEmpty().isAlphanumeric();
 
-  var patronGrade = req.body.patron_grade.toLowerCase();
-  req.checkBody('patron_grade', 'Patron Grade must be one of Undergraduate, Graduate, Faculty, or Other.').notEmpty().isAlpha();
+  var patronGrade = req.body.patron_grade;
+  req.checkBody('patron_grade', 'Patron Grade must not be empty.').notEmpty().isAlpha();
 
   var patronDept = req.body.patron_department;
   req.checkBody('patron_department', 'Patron Department must not be empty').notEmpty().isAlpha();
@@ -109,10 +109,12 @@ app.post('/', upload.single('print_file'), function(req, res) {
   var dateCreated = rightNow;
   var dateModified =  rightNow;
 
-  var dateFinished = moment(req.body.date_finished).format('YYYY-MM-DD HH:MM:SS');
+  var fdate = req.body.date_finished.replace(/T/, ' ');
+  var dateFinished = moment(fdate).format('YYYY-MM-DD kk:mm:ss');
   req.checkBody('date_finished', 'Please enter a valid finished date').notEmpty().isDate();
 
-  var dateStarted = moment(req.body.date_started).format('YYYY-MM-DD HH:MM:SS');
+  var sdate = req.body.date_started.replace(/T/, ' ');
+  var dateStarted = moment(sdate).format('YYYY-MM-DD kk:mm:ss');
   req.checkBody('date_started', 'Please enter a valid start date (must be before date finished)').notEmpty().isDate().isBefore(dateFinished);
 
   var printerSetup = req.body.printer_setup;
@@ -142,13 +144,14 @@ app.post('/', upload.single('print_file'), function(req, res) {
     return;
   } else {
     
+    var imageName = '';
     // image file is handled here
     if (req.body.image_file !== '') {
       // get image data and convert from base64 to file and save to disk
       // generate name for image file and store the path in the database
       // http://stackoverflow.com/questions/10645994/node-js-how-to-format-a-date-string-in-utc
       var nameDate = moment().format('YYYY-MM-DD-HH-MM-SS');
-      var imageName = req.app.locals.image_path + nameDate + '-' + rstring.generate({length:11}) + '.jpg';
+      imageName = req.app.locals.image_path + nameDate + '-' + rstring.generate({length:11}) + '.jpg';
       var imagePath = __dirname + imageName;
       // save print file to disk
       // http://stackoverflow.com/questions/20267939/nodejs-write-base64-image-file
@@ -160,7 +163,7 @@ app.post('/', upload.single('print_file'), function(req, res) {
       if(err) {
         return console.error('error fetching client from pool', err);
       }
-      client.query('INSERT INTO prints (patron_id, patron_grade, patron_department, tech_id, date_created, date_modified, date_started, date_finished, printer_setup, notes, image_file, print_file) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)', [patronID, patronGrade, patronDept, techID, dateCreated, dateModified, dateStarted, dateFinished, printerSetup, notes, imagePath, shapePath] , function(dberr, result) {
+      client.query('INSERT INTO prints (patron_id, patron_grade, patron_department, tech_id, date_created, date_modified, date_started, date_finished, printer_setup, notes, image_file, print_file) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)', [patronID, patronGrade, patronDept, techID, dateCreated, dateModified, dateStarted, dateFinished, printerSetup, notes, imageName, shapePath] , function(dberr, result) {
         done();
         if(dberr) {
           res.render('create', {dbErr: dberr, fields: req.body} );
@@ -169,11 +172,10 @@ app.post('/', upload.single('print_file'), function(req, res) {
             fs.unlink(shapePath);
           }
           if (req.body.image_file !== '') {
-            fs.unlink(fullName);
+            fs.unlink(imagePath);
           }
           return console.error('error running query', dberr);
         }
-        // handle an error from the query
       });
     });
 
@@ -181,8 +183,8 @@ app.post('/', upload.single('print_file'), function(req, res) {
   }
 
 
+    console.log('here');
 });
-
 
 
 /******************************

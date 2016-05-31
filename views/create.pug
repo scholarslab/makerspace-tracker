@@ -5,6 +5,9 @@ block content
     ul.card-panel.red.white-text
       for error in errors
         li= error.msg
+  if dbErr
+    ul.card-panel.red.white-text
+      li= dbErr
 
   if fields
     - var patronID = fields.patron_id
