@@ -18,6 +18,24 @@ var valid = require('express-validator');
 ******************************/
 var app = express();
 
+// Set the port to listen on
+app.set('port', (process.env.PORT || 5000));
+
+// public folder
+app.use(express.static(__dirname + '/public'));
+
+// Use express-validator 
+app.use(valid());
+
+// views is directory for all template files
+app.set('views', __dirname + '/views');
+app.set('view engine', 'pug');
+
+// global variables
+app.locals.image_path = 'files/images/';
+app.locals.shape_path = 'files/shapes/';
+app.locals.moment = require('moment');
+
 // database connection
 var dbCon = "postgres://aes9h@localhost/aes9h";
 
@@ -26,7 +44,7 @@ var storage = multer.diskStorage({
   destination: function (req, file, cb) {
     //detect mimetype. if octet-stream save in shapes directory
     if ( file.mimetype == 'application/octet-stream' ){
-      cb(null, 'files/shapes');
+      cb(null, req.app.locals.shape_path);
     }
   },
   filename: function (req, file, cb) {
@@ -34,7 +52,7 @@ var storage = multer.diskStorage({
     // https://github.com/expressjs/multer/issues/170
     // If shape file, save with .stl
     if ( file.mimetype == 'application/octet-stream' ){
-        var nameDateTime = new Date().toISOString().replace(/:/g, '-').substr(0,19);
+        var nameDateTime = moment().format('YYYY-MM-DD-kk-mm-ss');
         var fileExt = path.extname(file.originalname);
         var fileName = path.basename(file.originalname, fileExt);
         cb(null, nameDateTime + '-' + fileName + '-' + rstring.generate({length:8}) + fileExt);
@@ -43,24 +61,8 @@ var storage = multer.diskStorage({
     }
   }
 });
-
 var upload = multer({ storage: storage });
-app.use(valid());
 
-// Set the port to listen on
-app.set('port', (process.env.PORT || 5000));
-
-// public folder
-app.use(express.static(__dirname + '/public'));
-
-// views is directory for all template files
-app.set('views', __dirname + '/views');
-app.set('view engine', 'pug');
-
-// global variables
-app.locals.image_path = '/files/images/';
-app.locals.shape_path = '/files/shapes/';
-app.locals.moment = require('moment');
 
 
 /******************************
@@ -91,7 +93,8 @@ app.get('/prints', function (request, response) {
 // http://localhost/
 app.post('/', upload.single('print_file'), function(req, res) {
 
-  var rightNow = moment().format('YYYY-MM-DD kk:mm:ss');
+  var timeFormat = 'YYYY-MM-DD kk:mm:ss';
+  var rightNow = moment().format(timeFormat);
   
   // Filter input
   var patronID = req.body.patron_id;
@@ -110,11 +113,11 @@ app.post('/', upload.single('print_file'), function(req, res) {
   var dateModified =  rightNow;
 
   var fdate = req.body.date_finished.replace(/T/, ' ');
-  var dateFinished = moment(fdate).format('YYYY-MM-DD kk:mm:ss');
+  var dateFinished = moment(fdate).format(timeFormat);
   req.checkBody('date_finished', 'Please enter a valid finished date').notEmpty().isDate();
 
   var sdate = req.body.date_started.replace(/T/, ' ');
-  var dateStarted = moment(sdate).format('YYYY-MM-DD kk:mm:ss');
+  var dateStarted = moment(sdate).format(timeFormat);
   req.checkBody('date_started', 'Please enter a valid start date (must be before date finished)').notEmpty().isDate().isBefore(dateFinished);
 
   var printerSetup = req.body.printer_setup;
@@ -150,13 +153,14 @@ app.post('/', upload.single('print_file'), function(req, res) {
       // get image data and convert from base64 to file and save to disk
       // generate name for image file and store the path in the database
       // http://stackoverflow.com/questions/10645994/node-js-how-to-format-a-date-string-in-utc
-      var nameDate = moment().format('YYYY-MM-DD-HH-MM-SS');
+      var nameDate = moment().format('YYYY-MM-DD-kk-mm-ss');
       imageName = req.app.locals.image_path + nameDate + '-' + rstring.generate({length:11}) + '.jpg';
-      var imagePath = __dirname + imageName;
+      var imagePath = __dirname + '/' + imageName;
       // save print file to disk
       // http://stackoverflow.com/questions/20267939/nodejs-write-base64-image-file
       fs.writeFile(imagePath, req.body.image_file, {encoding: 'base64'}, function(err){ 
         if (err) {
+          console.log('error from image file save: ' + err)
           res.render('create', {errors: 'Image file did not save.', fields: req.body});
         }
       });
