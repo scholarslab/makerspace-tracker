@@ -22,7 +22,7 @@ block content
     - var started = moment().format('YYYY-MM-DD[T]kk:mm');
 
   #print-form
-    form(action='/', method='post', enctype='multipart/form-data')
+    form(action='/capture', method='post', enctype='multipart/form-data')
       .row
         .col.s6
           input(type='text', id='patron_id', placeholder='Patron ID (required)', name='patron_id' value=patronID)
