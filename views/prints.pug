@@ -16,7 +16,7 @@ block content
             td= row.patron_grade
             td= row.patron_department
             td= row.tech_id
-            td= moment(row.date_created).format('MMMM DD, YYYY')
+            td.date= moment(row.date_created).format('MMM DD, YYYY')
             td: pre= row.printer_setup
             td: pre= row.notes
             td

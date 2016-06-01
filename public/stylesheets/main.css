@@ -5,3 +5,7 @@
 #printer_setup {
   height: 130px;
 }
+
+td {
+  min-width: 100px;
+}
