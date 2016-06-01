@@ -73,7 +73,6 @@ var upload = multer({ storage: storage });
 // Show the prints in the database
 // http://localhost/
 app.get('/', function(req, res) {
-  debug('Home page');
   pg.connect(dbCon, function(err, client, done) {
     client.query('SELECT * FROM prints ORDER BY date_created DESC', function(err, result) {
       done();
