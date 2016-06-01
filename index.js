@@ -73,11 +73,13 @@ var upload = multer({ storage: storage });
 // Show the prints in the database
 // http://localhost/
 app.get('/', function(req, res) {
+  debug('Home page');
   pg.connect(dbCon, function(err, client, done) {
-    client.query('SELECT * FROM prints', function(err, result) {
+    client.query('SELECT * FROM prints ORDER BY date_created DESC', function(err, result) {
       done();
       if (err) { 
-        console.error(err); res.status(400).send("Error " + err); 
+        console.error(err); 
+        res.status(400).send("Error " + err); 
       } else { 
         res.render('prints', {results: result.rows} ); 
       }
@@ -97,7 +99,7 @@ app.get('/capture', function (req, res) {
   res.render('capture');
 });
 
-// Capture Page (post results):
+// Capture Page (handle results from POST):
 // http://localhost/capture
 app.post('/capture', upload.single('print_file'), function(req, res) {
 
@@ -168,7 +170,7 @@ app.post('/capture', upload.single('print_file'), function(req, res) {
       // http://stackoverflow.com/questions/20267939/nodejs-write-base64-image-file
       fs.writeFile(imagePath, req.body.image_file, {encoding: 'base64'}, function(err){ 
         if (err) {
-          console.log('error from image file save: ' + err)
+          console.error('error from image file save: ' + err);
           res.render('capture', {errors: 'Image file did not save.', fields: req.body});
         }
       });
