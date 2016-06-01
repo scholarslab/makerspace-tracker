@@ -23,6 +23,7 @@ app.set('port', (process.env.PORT || 5000));
 
 // public folder
 app.use(express.static(__dirname + '/public'));
+app.use('/files', express.static(__dirname + '/files'));
 
 // Use express-validator 
 app.use(valid());
@@ -69,29 +70,36 @@ var upload = multer({ storage: storage });
   * Routes
 ******************************/
 // Home Page: 
+// Show the prints in the database
 // http://localhost/
 app.get('/', function(req, res) {
-  res.render('create');
-});
-
-// Results Page:
-// Display the results of the database
-// http://localhost/prints
-app.get('/prints', function (request, response) {
   pg.connect(dbCon, function(err, client, done) {
     client.query('SELECT * FROM prints', function(err, result) {
       done();
-      if (err)
-       { console.error(err); response.status(400).send("Error " + err); }
-      else
-       { response.render('prints', {results: result.rows} ); }
+      if (err) { 
+        console.error(err); res.status(400).send("Error " + err); 
+      } else { 
+        res.render('prints', {results: result.rows} ); 
+      }
     });
   });
 });
 
-// Home Page (post results):
-// http://localhost/
-app.post('/', upload.single('print_file'), function(req, res) {
+// Detail Page:
+// Display detail info about print 
+// // http://localhost/detail/printID
+app.get('/detail/', function (req, res) {
+});
+
+// Capture Page (blank form):
+// http://localhost/capture
+app.get('/capture', function (req, res) {
+  res.render('capture');
+});
+
+// Capture Page (post results):
+// http://localhost/capture
+app.post('/capture', upload.single('print_file'), function(req, res) {
 
   var timeFormat = 'YYYY-MM-DD kk:mm:ss';
   var rightNow = moment().format(timeFormat);
@@ -139,7 +147,7 @@ app.post('/', upload.single('print_file'), function(req, res) {
   // Validation Errors
   var valErrors = req.validationErrors(true);
   if (valErrors) {
-    res.render('create', {errors: valErrors, fields: req.body} );
+    res.render('capture', {errors: valErrors, fields: req.body} );
     if(shapePath !== '') {
       // delete the uploaded file
       fs.unlink(shapePath);
@@ -161,7 +169,7 @@ app.post('/', upload.single('print_file'), function(req, res) {
       fs.writeFile(imagePath, req.body.image_file, {encoding: 'base64'}, function(err){ 
         if (err) {
           console.log('error from image file save: ' + err)
-          res.render('create', {errors: 'Image file did not save.', fields: req.body});
+          res.render('capture', {errors: 'Image file did not save.', fields: req.body});
         }
       });
     }
@@ -174,7 +182,7 @@ app.post('/', upload.single('print_file'), function(req, res) {
       client.query('INSERT INTO prints (patron_id, patron_grade, patron_department, tech_id, date_created, date_modified, date_started, date_finished, printer_setup, notes, image_file, print_file) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)', [patronID, patronGrade, patronDept, techID, dateCreated, dateModified, dateStarted, dateFinished, printerSetup, notes, imageName, shapePath] , function(dberr, result) {
         done();
         if(dberr) {
-          res.render('create', {dbErr: dberr, fields: req.body} );
+          res.render('capture', {dbErr: dberr, fields: req.body} );
           if(shapePath !== '') {
             // delete the uploaded file
             fs.unlink(shapePath);
@@ -187,7 +195,7 @@ app.post('/', upload.single('print_file'), function(req, res) {
       });
     });
 
-    res.render('create');
+    res.render('capture');
   }
 
 });

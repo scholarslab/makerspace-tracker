@@ -10,7 +10,15 @@ block content
             th= header
 
       tbody
-        tr
         each row in results
-          td= row
+          tr
+            td= row.patron_id
+            td= row.patron_grade
+            td= row.patron_department
+            td= row.tech_id
+            td= moment(row.date_created).format('MMMM DD, YYYY')
+            td: pre= row.printer_setup
+            td: pre= row.notes
+            td: img.responsive-img(src=row.image_file)
+            td: a(href=row.print_file) Shape File
 
