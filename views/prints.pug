@@ -3,7 +3,7 @@ extends layout
 block content
   - var headers = [ "Patron", "Grade", "Department", "Tech", "Date Created", "Printer Setup", "Notes", "Image", "Print File" ]
   #table-content
-    table.striped
+    table.striped.responsive-table.bordered
       thead
           tr
           each header in headers
