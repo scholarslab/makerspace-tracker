@@ -19,6 +19,9 @@ block content
             td= moment(row.date_created).format('MMMM DD, YYYY')
             td: pre= row.printer_setup
             td: pre= row.notes
-            td: img.responsive-img(src=row.image_file)
-            td: a(href=row.print_file) Shape File
-
+            td
+              - if(row.image_file)
+                img.responsive-img(src=row.image_file)
+            td 
+              - if(row.print_file)
+                a(href=row.print_file) Shape File
