@@ -50,10 +50,10 @@ block content
         .col.s6
           input(type='hidden', id='image_file', name='image_file' value='')
           script(src="webcam.js")
-          #live_camera(style="width:320px; height:240px;margin:8px;")
+          #live_camera
+          a.btn.waves-effect.waves-light(href="javascript:void(take_snapshot())") Take Snapshot
           #snapshot()
           script(src='pics.js')
-          a.btn.waves-effect.waves-light(href="javascript:void(take_snapshot())") Take Snapshot
 
 
 

@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  - var headers = [ "Patron", "Grade", "Department", "Tech", "Date Created", "Printer Setup", "Notes", "Image", "Print File" ]
+  - var headers = [ "Image", "Printer & Setup", "Print File", "Notes", "Patron", "Grade", "Department", "Tech", "Date Created" ]
   #table-content
     table.striped.responsive-table.bordered
       thead
@@ -12,16 +12,16 @@ block content
       tbody
         each row in results
           tr
+            td
+              - if(row.image_file)
+                img.responsive-img(src=row.image_file)
+            td: pre= row.printer_setup
+            td 
+              - if(row.print_file)
+                a(href=row.print_file) Shape File
+            td: pre= row.notes
             td= row.patron_id
             td= row.patron_grade
             td= row.patron_department
             td= row.tech_id
             td.date= moment(row.date_created).format('MMM DD, YYYY')
-            td: pre= row.printer_setup
-            td: pre= row.notes
-            td
-              - if(row.image_file)
-                img.responsive-img(src=row.image_file)
-            td 
-              - if(row.print_file)
-                a(href=row.print_file) Shape File
