@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  - var headers = [ "Image", "Printer & Setup", "Print File", "Notes", "Patron", "Grade", "Department", "Tech", "Date Created" ]
+  - var headers = [ "Image", "Printer & Setup", "Print File", "Notes", "Patron", "Tech", "Date Created" ]
   #table-content
     table.striped.responsive-table.bordered
       thead
@@ -21,7 +21,5 @@ block content
                 a(href=row.print_file) Shape File
             td: pre= row.notes
             td= row.patron_id
-            td= row.patron_grade
-            td= row.patron_department
             td= row.tech_id
             td.date= moment(row.date_created).format('MMM DD, YYYY')
