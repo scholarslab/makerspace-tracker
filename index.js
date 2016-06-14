@@ -11,12 +11,19 @@ var moment = require('moment');
 var rstring = require('randomstring');
 var multer = require('multer');
 var valid = require('express-validator');
+var dotenv = require('dotenv');
 
 
 /******************************
   * Settings
 ******************************/
 var app = express();
+
+// Load local environment variables from .env file
+dotenv.load();
+
+// database connection
+DB_URL = process.env.DATABASE_URL;
 
 // Set the port to listen on
 app.set('port', (process.env.PORT || 5000));
@@ -37,8 +44,6 @@ app.locals.image_path = 'files/images/';
 app.locals.shape_path = 'files/shapes/';
 app.locals.moment = require('moment');
 
-// database connection
-var dbCon = "postgres://aes9h@localhost/aes9h";
 
 // Form handling
 var storage = multer.diskStorage({
@@ -73,7 +78,7 @@ var upload = multer({ storage: storage });
 // Show the prints in the database
 // http://localhost/
 app.get('/', function(req, res) {
-  pg.connect(dbCon, function(err, client, done) {
+  pg.connect(DB_URL, function(err, client, done) {
     client.query('SELECT * FROM prints ORDER BY date_created DESC', function(err, result) {
       done();
       if (err) { 
@@ -176,7 +181,7 @@ app.post('/capture', upload.single('print_file'), function(req, res) {
     }
 
     // add info to the database
-    pg.connect(dbCon, function(err, client, done) {
+    pg.connect(DB_URL, function(err, client, done) {
       if(err) {
         return console.error('error fetching client from pool', err);
       }

@@ -11,16 +11,17 @@
     "dev": "nodemon index.js"
   },
   "dependencies": {
+    "dotenv": "2.0.0",
     "express": "4.13.3",
-    "express-validator": "^2.20.4",
+    "express-validator": "2.20.4",
     "fs": "0.0.2",
-    "moment": "^2.13.0",
-    "multer": "^1.1.0",
+    "moment": "2.13.0",
+    "multer": "1.1.0",
     "pg": "4.x",
-    "pg-hstore": "^2.3.2",
-    "pug": "^2.0.0-alpha7",
-    "pug-load": "^1.0.3",
-    "randomstring": "^1.1.4"
+    "pg-hstore": "2.3.2",
+    "pug": "2.0.0-alpha7",
+    "pug-load": "1.0.3",
+    "randomstring": "1.1.4"
   },
   "repository": {
     "type": "git",
@@ -28,6 +29,6 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "nodemon": "^1.9.2"
+    "nodemon": "1.9.2"
   }
 }

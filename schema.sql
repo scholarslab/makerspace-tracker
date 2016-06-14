@@ -1,4 +1,3 @@
-
 CREATE TABLE IF NOT EXISTS prints (
   print_id SERIAL PRIMARY KEY,
   patron_id VARCHAR (50) NOT NULL,
