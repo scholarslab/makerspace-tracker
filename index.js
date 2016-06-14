@@ -76,7 +76,6 @@ if ( "development" === process.env.ENV ) {
   var s3bucket = new aws.S3({params: {Bucket: process.env.S3_BUCKET}});
   var storage = multers3({
     bucket: process.env.S3_BUCKET,
-    region: 'us-standard',
     destination: function (req, file, cb) {
       //detect mimetype. if octet-stream save in shapes directory
       if ( file.mimetype == 'application/octet-stream' ){
