@@ -1,17 +1,19 @@
 /******************************
   * Requireds
 ******************************/
-var express = require('express');
-var util = require('util');
-var pg = require('pg');
-var fs = require('fs');
-var path = require('path');
+var aws = require('aws-sdk');
 var crypto = require('crypto');
-var moment = require('moment');
-var rstring = require('randomstring');
-var multer = require('multer');
-var valid = require('express-validator');
 var dotenv = require('dotenv');
+var express = require('express');
+var fs = require('fs');
+var moment = require('moment');
+var multer = require('multer');
+var multers3 = require('multer-storage-s3');
+var path = require('path');
+var pg = require('pg');
+var rstring = require('randomstring');
+var util = require('util');
+var valid = require('express-validator');
 
 
 /******************************
@@ -44,31 +46,61 @@ app.locals.image_path = 'files/images/';
 app.locals.shape_path = 'files/shapes/';
 app.locals.moment = require('moment');
 
+if ( "development" === process.env.ENV ) {
+  console.log('local');
+  // Form handling
+  var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      //detect mimetype. if octet-stream save in shapes directory
+      if ( file.mimetype == 'application/octet-stream' ){
+        cb(null, req.app.locals.shape_path);
+      }
+    },
+    filename: function (req, file, cb) {
+      // don't save file extension?
+      // https://github.com/expressjs/multer/issues/170
+      // If shape file, save with .stl
+      if ( file.mimetype == 'application/octet-stream' ){
+          var nameDateTime = moment().format('YYYY-MM-DD-kk-mm-ss');
+          var fileExt = path.extname(file.originalname);
+          var fileName = path.basename(file.originalname, fileExt);
+          cb(null, nameDateTime + '-' + fileName + '-' + rstring.generate({length:8}) + fileExt);
+      } else {
+        // return error that only accepts certain file types
+      }
+    }
+  });
 
-// Form handling
-var storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    //detect mimetype. if octet-stream save in shapes directory
-    if ( file.mimetype == 'application/octet-stream' ){
-      cb(null, req.app.locals.shape_path);
+} else {
+  console.log('s3');
+  var s3bucket = new aws.S3({params: {Bucket: process.env.S3_BUCKET}});
+  var storage = multers3({
+    bucket: process.env.S3_BUCKET,
+    region: 'us-standard',
+    destination: function (req, file, cb) {
+      //detect mimetype. if octet-stream save in shapes directory
+      if ( file.mimetype == 'application/octet-stream' ){
+        cb(null, req.app.locals.shape_path);
+      }
+    },
+    filename: function (req, file, cb) {
+      // don't save file extension?
+      // https://github.com/expressjs/multer/issues/170
+      // If shape file, save with .stl
+      if ( file.mimetype == 'application/octet-stream' ){
+          var nameDateTime = moment().format('YYYY-MM-DD-kk-mm-ss');
+          var fileExt = path.extname(file.originalname);
+          var fileName = path.basename(file.originalname, fileExt);
+          cb(null, nameDateTime + '-' + fileName + '-' + rstring.generate({length:8}) + fileExt);
+      } else {
+        // return error that only accepts certain file types
+      }
     }
-  },
-  filename: function (req, file, cb) {
-    // don't save file extension?
-    // https://github.com/expressjs/multer/issues/170
-    // If shape file, save with .stl
-    if ( file.mimetype == 'application/octet-stream' ){
-        var nameDateTime = moment().format('YYYY-MM-DD-kk-mm-ss');
-        var fileExt = path.extname(file.originalname);
-        var fileName = path.basename(file.originalname, fileExt);
-        cb(null, nameDateTime + '-' + fileName + '-' + rstring.generate({length:8}) + fileExt);
-    } else {
-      // return error that only accepts certain file types
-    }
-  }
-});
+  });
+
+}
+
 var upload = multer({ storage: storage });
-
 
 
 /******************************
@@ -170,14 +202,27 @@ app.post('/capture', upload.single('print_file'), function(req, res) {
       var nameDate = moment().format('YYYY-MM-DD-kk-mm-ss');
       imageName = req.app.locals.image_path + nameDate + '-' + rstring.generate({length:11}) + '.jpg';
       var imagePath = __dirname + '/' + imageName;
-      // save print file to disk
-      // http://stackoverflow.com/questions/20267939/nodejs-write-base64-image-file
-      fs.writeFile(imagePath, req.body.image_file, {encoding: 'base64'}, function(err){ 
-        if (err) {
-          console.error('error from image file save: ' + err);
-          res.render('capture', {errors: 'Image file did not save.', fields: req.body});
-        }
-      });
+
+      if ('development' === process.env.ENV) {
+        // save print file to disk
+        // http://stackoverflow.com/questions/20267939/nodejs-write-base64-image-file
+        fs.writeFile(imagePath, req.body.image_file, {encoding: 'base64'}, function(err){ 
+          if (err) {
+            console.error('error from image file save: ' + err);
+            res.render('capture', {errors: 'Image file did not save.', fields: req.body});
+          }
+        });
+      } else {
+        var data = { Key: imageName, Body: req.body.image_file };
+        s3bucket.putObject(data, function (err, data) {
+          if (err) {
+            console.log('Error uploading: ',  err);
+          } else {
+            console.log('Uploaded file successfully');
+          }
+        });
+
+      }
     }
 
     // add info to the database

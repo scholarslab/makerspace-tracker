@@ -11,12 +11,14 @@
     "dev": "nodemon index.js"
   },
   "dependencies": {
+    "aws-sdk": "2.3.19",
     "dotenv": "2.0.0",
     "express": "4.13.3",
     "express-validator": "2.20.4",
     "fs": "0.0.2",
     "moment": "2.13.0",
     "multer": "1.1.0",
+    "multer-storage-s3": "1.1.1",
     "pg": "4.x",
     "pg-hstore": "2.3.2",
     "pug": "2.0.0-alpha7",
