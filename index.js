@@ -46,8 +46,8 @@ app.locals.image_path = 'files/images/';
 app.locals.shape_path = 'files/shapes/';
 app.locals.moment = require('moment');
 
-if ( "development" === process.env.ENV ) {
-  console.log('local');
+//if ( "development" === process.env.ENV ) {
+  /* Save to local disk
   // Form handling
   var storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -70,9 +70,8 @@ if ( "development" === process.env.ENV ) {
       }
     }
   });
-
-} else {
-  console.log('s3');
+*/
+//} else {
   var s3bucket = new aws.S3({params: {Bucket: process.env.S3_BUCKET}});
   var storage = multers3({
     bucket: process.env.S3_BUCKET,
@@ -97,7 +96,7 @@ if ( "development" === process.env.ENV ) {
     }
   });
 
-}
+//}
 
 var upload = multer({ storage: storage });
 
@@ -202,7 +201,8 @@ app.post('/capture', upload.single('print_file'), function(req, res) {
       imageName = req.app.locals.image_path + nameDate + '-' + rstring.generate({length:11}) + '.jpg';
       var imagePath = __dirname + '/' + imageName;
 
-      if ('development' === process.env.ENV) {
+      //if ('development' === process.env.ENV) {
+        /* Save to Local
         // save print file to disk
         // http://stackoverflow.com/questions/20267939/nodejs-write-base64-image-file
         fs.writeFile(imagePath, req.body.image_file, {encoding: 'base64'}, function(err){ 
@@ -211,8 +211,10 @@ app.post('/capture', upload.single('print_file'), function(req, res) {
             res.render('capture', {errors: 'Image file did not save.', fields: req.body});
           }
         });
-      } else {
-        var data = { Key: imageName, Body: req.body.image_file };
+        */
+      //} else {
+      var img = Buffer.from(req.body.image_file, 'base64');
+        var data = { Key: imageName, Body: img, ContentEncoding: 'base64', ContentType: 'image/jpg' };
         s3bucket.putObject(data, function (err, data) {
           if (err) {
             console.log('Error uploading: ',  err);
@@ -221,7 +223,7 @@ app.post('/capture', upload.single('print_file'), function(req, res) {
           }
         });
 
-      }
+      //}
     }
 
     // add info to the database

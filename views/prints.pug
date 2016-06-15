@@ -14,11 +14,13 @@ block content
           tr
             td
               - if(row.image_file)
-                img.responsive-img(src=row.image_file)
+                - //var s3URL = 'https://' + process.env.S3_BUCKET + '.amazonaws.com/'
+                - var s3URL = 'https://s3.amazonaws.com/' + process.env.S3_BUCKET + '/'
+                img.responsive-img(src=s3URL + row.image_file)
             td: pre= row.printer_setup
             td 
               - if(row.print_file)
-                a(href=row.print_file) Shape File
+                a(href=s3URL + row.print_file) Shape File
             td: pre= row.notes
             td= row.patron_id
             td= row.tech_id
