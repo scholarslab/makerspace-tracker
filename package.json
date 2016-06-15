@@ -3,7 +3,7 @@
   "version": "0.2.5",
   "description": "Database and Web App for tracking 3D prints",
   "engines": {
-    "node": "5.9.1"
+    "node": "6.2.1"
   },
   "main": "index.js",
   "scripts": {
