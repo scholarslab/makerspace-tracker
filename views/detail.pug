@@ -1,0 +1,55 @@
+extends layout
+
+block content
+  if errors
+    ul.card-panel.red.white-text
+      for error in errors
+        li= error.msg
+  if dbErr
+    ul.card-panel.red.white-text
+      li= dbErr
+
+  each row in results
+    - var patronID = row.patron_id
+    - var patronGRD = row.patron_id
+    - var patronDPT = row.patron_department
+    - var techID = row.tech_id
+    - var finished = moment(row.date_finished).format('YYYY-MM-DD[T]kk:mm')
+    - var started = moment(row.date_started).format('YYYY-MM-DD[T]kk:mm')
+    - var printer = row.printer_setup
+    - var notes = row.notes
+
+    - var s3URL = 'https://s3.amazonaws.com/' + process.env.S3_BUCKET + '/'
+  #print-form
+    form(action='/capture', method='post', enctype='multipart/form-data')
+      .row
+        .col.s6
+          p: img.responsive-img(src=s3URL + row.image_file)
+          p: a(href=s3URL + row.print_file) Shape File
+
+        .col.s6
+          label Patron ID
+          input(type='text', id='patron_id', placeholder='Patron ID (required)', name='patron_id' value=patronID)
+          label Patron Grade
+          input(list='grade', id='patron_grade', placeholder='Patron Grade (required)', name='patron_grade' value=patronGRD)
+          datalist#grade
+            option(value='Undergraduate')
+            option(value='Graduate')
+            option(value='Faculty')
+            option(value='Other')
+          label Patron Department
+          input(type='text', id='patron_department', placeholder='Patron Department (required)', name='patron_department' value=patronDPT)
+          label Tech ID
+          input(type='text', id='tech_id', placeholder='Tech ID (required)', name='tech_id' value=techID)
+          .row
+            .col.s6
+              label Date/Time Started
+              input(type='datetime-local', id='date_started', name='date_started' value=started)
+            .col.s6
+              label Date/Time Finished
+              input(type='datetime-local', id='date_finished', name='date_finished' value=finished)
+
+          label Printer Setup
+          textarea(id='printer_setup', placeholder='Printer Settings: \n\tnozzle size: \n\tfilament type: \n\tfilament color:', name='printer_setup') #{printer}
+          label Notes
+          textarea(id='notes', placeholder='Notes', name='notes') #{notes}

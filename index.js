@@ -46,58 +46,30 @@ app.locals.image_path = 'files/images/';
 app.locals.shape_path = 'files/shapes/';
 app.locals.moment = require('moment');
 
-//if ( "development" === process.env.ENV ) {
-  /* Save to local disk
-  // Form handling
-  var storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      //detect mimetype. if octet-stream save in shapes directory
-      if ( file.mimetype == 'application/octet-stream' ){
-        cb(null, req.app.locals.shape_path);
-      }
-    },
-    filename: function (req, file, cb) {
-      // don't save file extension?
-      // https://github.com/expressjs/multer/issues/170
-      // If shape file, save with .stl
-      if ( file.mimetype == 'application/octet-stream' ){
-          var nameDateTime = moment().format('YYYY-MM-DD-kk-mm-ss');
-          var fileExt = path.extname(file.originalname);
-          var fileName = path.basename(file.originalname, fileExt);
-          cb(null, nameDateTime + '-' + fileName + '-' + rstring.generate({length:8}) + fileExt);
-      } else {
-        // return error that only accepts certain file types
-      }
+// Save files to S3
+var s3bucket = new aws.S3({params: {Bucket: process.env.S3_BUCKET}});
+var storage = multers3({
+  bucket: process.env.S3_BUCKET,
+  destination: function (req, file, cb) {
+    //detect mimetype. if octet-stream save in shapes directory
+    if ( file.mimetype == 'application/octet-stream' ){
+      cb(null, req.app.locals.shape_path);
     }
-  });
-*/
-//} else {
-  var s3bucket = new aws.S3({params: {Bucket: process.env.S3_BUCKET}});
-  var storage = multers3({
-    bucket: process.env.S3_BUCKET,
-    destination: function (req, file, cb) {
-      //detect mimetype. if octet-stream save in shapes directory
-      if ( file.mimetype == 'application/octet-stream' ){
-        cb(null, req.app.locals.shape_path);
-      }
-    },
-    filename: function (req, file, cb) {
-      // don't save file extension?
-      // https://github.com/expressjs/multer/issues/170
-      // If shape file, save with .stl
-      if ( file.mimetype == 'application/octet-stream' ){
-          var nameDateTime = moment().format('YYYY-MM-DD-kk-mm-ss');
-          var fileExt = path.extname(file.originalname);
-          var fileName = path.basename(file.originalname, fileExt);
-          cb(null, nameDateTime + '-' + fileName + '-' + rstring.generate({length:8}) + fileExt);
-      } else {
-        // return error that only accepts certain file types
-      }
+  },
+  filename: function (req, file, cb) {
+    // don't save file extension?
+    // https://github.com/expressjs/multer/issues/170
+    // If shape file, save with .stl
+    if ( file.mimetype == 'application/octet-stream' ){
+        var nameDateTime = moment().format('YYYY-MM-DD-kk-mm-ss');
+        var fileExt = path.extname(file.originalname);
+        var fileName = path.basename(file.originalname, fileExt);
+        cb(null, nameDateTime + '-' + fileName + '-' + rstring.generate({length:8}) + fileExt);
+    } else {
+      // return error that only accepts certain file types
     }
-  });
-
-//}
-
+  }
+});
 var upload = multer({ storage: storage });
 
 
@@ -124,7 +96,18 @@ app.get('/', function(req, res) {
 // Detail Page:
 // Display detail info about print 
 // // http://localhost/detail/printID
-app.get('/detail/', function (req, res) {
+app.get('/detail/:id', function (req, res) {
+  pg.connect(DB_URL, function(err, client, done) {
+    client.query('SELECT * FROM prints WHERE print_id = $1', [ req.params.id ], function(err, result) {
+      done();
+      if (err) { 
+        console.error(err); 
+        res.status(400).send("Error " + err); 
+      } else { 
+        res.render('detail', {results: result.rows});
+      }
+    });
+  });
 });
 
 // Capture Page (blank form):
@@ -201,29 +184,16 @@ app.post('/capture', upload.single('print_file'), function(req, res) {
       imageName = req.app.locals.image_path + nameDate + '-' + rstring.generate({length:11}) + '.jpg';
       var imagePath = __dirname + '/' + imageName;
 
-      //if ('development' === process.env.ENV) {
-        /* Save to Local
-        // save print file to disk
-        // http://stackoverflow.com/questions/20267939/nodejs-write-base64-image-file
-        fs.writeFile(imagePath, req.body.image_file, {encoding: 'base64'}, function(err){ 
-          if (err) {
-            console.error('error from image file save: ' + err);
-            res.render('capture', {errors: 'Image file did not save.', fields: req.body});
-          }
-        });
-        */
-      //} else {
-      var img = Buffer.from(req.body.image_file, 'base64');
-        var data = { Key: imageName, Body: img, ContentEncoding: 'base64', ContentType: 'image/jpg' };
-        s3bucket.putObject(data, function (err, data) {
-          if (err) {
-            console.log('Error uploading: ',  err);
-          } else {
-            console.log('Uploaded file successfully');
-          }
-        });
+      //var img = Buffer.from(req.body.image_file, 'base64');
+      var data = { Key: imageName, Body: req.body.image_file, ContentEncoding: 'base64', ContentType: 'image/jpg' };
+      s3bucket.putObject(data, function (err, data) {
+        if (err) {
+          console.log('Error uploading: ',  err);
+        } else {
+          console.log('Uploaded file successfully');
+        }
+      });
 
-      //}
     }
 
     // add info to the database
