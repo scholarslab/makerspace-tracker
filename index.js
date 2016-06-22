@@ -111,16 +111,8 @@ app.get('/', function(req, res) {
 // Display detail info about print 
 // // http://localhost/detail/printID
 app.get('/detail/:id', function (req, res) {
-  pg.connect(DB_URL, function(err, client, done) {
-    client.query('SELECT * FROM prints WHERE print_id = $1', [ req.params.id ], function(err, result) {
-      done();
-      if (err) { 
-        console.error(err); 
-        res.status(400).send("Error " + err); 
-      } else { 
-        res.render('detail', {results: result.rows});
-      }
-    });
+  Print.findById(req.params.id).then(function(print) {
+    res.render('detail', {results: print});
   });
 });
 
