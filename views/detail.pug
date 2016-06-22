@@ -10,6 +10,7 @@ block content
       li= dbErr
 
   each row in results
+    - var printID = row.print_id
     - var patronID = row.patron_id
     - var patronGRD = row.patron_id
     - var patronDPT = row.patron_department
@@ -21,11 +22,17 @@ block content
 
     - var s3URL = 'https://s3.amazonaws.com/' + process.env.S3_BUCKET + '/'
   #print-form
-    form(action='/capture', method='post', enctype='multipart/form-data')
+    form(action='/detail', method='post', enctype='multipart/form-data')
       .row
         .col.s6
           p: img.responsive-img(src=s3URL + row.image_file)
           p: a(href=s3URL + row.print_file) Shape File
+          .row
+            .col.s4
+              a.btn.waves-effect.waves-light.red(href='' onClick='deletePrint(' + printID + ')') Delete
+            .col.s4
+              input.btn.waves-effect.waves-light.green(type='submit', id='submit', name='submit' value='Update')
+            .col.s4
 
         .col.s6
           label Patron ID

@@ -23,7 +23,8 @@
     "pg-hstore": "2.3.2",
     "pug": "2.0.0-alpha7",
     "pug-load": "1.0.3",
-    "randomstring": "1.1.4"
+    "randomstring": "1.1.4",
+    "sequelize": "3.23.3"
   },
   "repository": {
     "type": "git",

@@ -12,6 +12,7 @@ var multers3 = require('multer-storage-s3');
 var path = require('path');
 var pg = require('pg');
 var rstring = require('randomstring');
+var Sequelize = require('sequelize');
 var util = require('util');
 var valid = require('express-validator');
 
@@ -27,7 +28,26 @@ dotenv.load();
 // database connection
 DB_URL = process.env.DATABASE_URL;
 pg.defaults.ssl = true;
+var sqlize = new Sequelize(DB_URL);
 
+// Database Models
+var Print = sqlize.define('print', {
+  print_id: { type: Sequelize.INTEGER, field: 'print_id', allowNull: false, unique: true, autoIncrement: true, primaryKey: true },
+  patron_id: { type: Sequelize.STRING, field: 'patron_id', allowNull: false },
+  patron_grade: { type: Sequelize.STRING, field: 'patron_grade', allowNull: false },
+  patron_department: { type: Sequelize.STRING, field: 'patron_department', allowNull: false },
+  tech_id: { type: Sequelize.STRING, field: 'tech_id', allowNull: false },
+  date_created: { type: Sequelize.DATE, field: 'date_created', allowNull: false, defaultValue: Sequelize.NOW },
+  date_modified: { type: Sequelize.DATE, field: 'date_modified', allowNull: false },
+  date_started: { type: Sequelize.DATE, field: 'date_started', allowNull: false },
+  date_finished: { type: Sequelize.DATE, field: 'date_finished', allowNull: false },
+  printer_setup: { type: Sequelize.TEXT, field: 'printer_setup' },
+  notes: { type: Sequelize.TEXT, field: 'notes' },
+  image_file: { type: Sequelize.STRING, field: 'image_file' },
+  print_file: { type: Sequelize.STRING, field: 'print_file' }
+  },
+  {createdAt: 'date_created', updatedAt: 'date_modified'}
+);
 
 // Set the port to listen on
 app.set('port', (process.env.PORT || 5000));
@@ -82,16 +102,8 @@ var upload = multer({ storage: storage });
 // Show the prints in the database
 // http://localhost/
 app.get('/', function(req, res) {
-  pg.connect(DB_URL, function(err, client, done) {
-    client.query('SELECT * FROM prints ORDER BY date_created DESC', function(err, result) {
-      done();
-      if (err) { 
-        console.error(err); 
-        res.status(400).send("Error " + err); 
-      } else { 
-        res.render('prints', {results: result.rows} ); 
-      }
-    });
+  Print.all().then(function(prints) {
+    res.render('prints', {results: prints} ); 
   });
 });
 
@@ -116,16 +128,26 @@ app.get('/detail/:id', function (req, res) {
 // Delete the specified print 
 // // http://localhost/detail/delete/printID
 app.delete('/detail/:id/delete', function (req, res) {
-  pg.connect(DB_URL, function(err, client, done) {
-    client.query('DELETE FROM prints WHERE print_id = $1', [ req.params.id ], function(err, result) {
-      done();
-      if (err) { 
-        console.error(err); 
-        res.status(400).send("Error " + err); 
-      } else { 
-        // delete the associated files
+  Print.findById(req.params.id).then(function(print) {
+    console.log(print.image_file);
+    Print.destroy({where: {print_id: req.params.id}});
+    var params = { 
+      Bucket:  process.env.S3_BUCKET,
+      Delete: {
+        Objects: [
+          { Key: print.image_file },
+          { Key: print.print_file }
+        ]
+      }
+    };
+    s3bucket.deleteObjects(params, function(err, data) {
+      if (err) {
+        console.log(err); 
+      } else {
+        res.redirect('/');
       }
     });
+    
   });
 });
 
