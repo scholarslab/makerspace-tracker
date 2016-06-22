@@ -26,6 +26,8 @@ dotenv.load();
 
 // database connection
 DB_URL = process.env.DATABASE_URL;
+pg.defaults.ssl = true;
+
 
 // Set the port to listen on
 app.set('port', (process.env.PORT || 5000));
@@ -105,6 +107,23 @@ app.get('/detail/:id', function (req, res) {
         res.status(400).send("Error " + err); 
       } else { 
         res.render('detail', {results: result.rows});
+      }
+    });
+  });
+});
+
+// Delete Print Route::
+// Delete the specified print 
+// // http://localhost/detail/delete/printID
+app.delete('/detail/:id/delete', function (req, res) {
+  pg.connect(DB_URL, function(err, client, done) {
+    client.query('DELETE FROM prints WHERE print_id = $1', [ req.params.id ], function(err, result) {
+      done();
+      if (err) { 
+        console.error(err); 
+        res.status(400).send("Error " + err); 
+      } else { 
+        // delete the associated files
       }
     });
   });
