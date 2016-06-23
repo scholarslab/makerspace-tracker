@@ -25,24 +25,30 @@ block content
     form(action='/capture', method='post', enctype='multipart/form-data')
       .row
         .col.s6
+          label Patron ID
           input(type='text', id='patron_id', placeholder='Patron ID (required)', name='patron_id' value=patronID)
+          label Patron Grade
           input(list='grade', id='patron_grade', placeholder='Patron Grade (required)', name='patron_grade' value=patronGRD)
           datalist#grade
             option(value='Undergraduate')
             option(value='Graduate')
             option(value='Faculty')
             option(value='Other')
+          label Patron Department
           input(type='text', id='patron_department', placeholder='Patron Department (required)', name='patron_department' value=patronDPT)
+          label Tech ID
           input(type='text', id='tech_id', placeholder='Tech ID (required)', name='tech_id' value=techID)
           .row
             .col.s6
-              p: strong Date/Time Started (required)
+              label: strong Date/Time Started (required)
               input(type='datetime-local', id='date_started', name='date_started' value=started)
             .col.s6
-              p: strong Date/Time Finished (required)
+              label: strong Date/Time Finished (required)
               input(type='datetime-local', id='date_finished', name='date_finished' value=finished)
 
+          label Printer Settings
           textarea(id='printer_setup', placeholder='Printer Settings: \n\tnozzle size: \n\tfilament type: \n\tfilament color:', name='printer_setup') #{printer}
+          label Notes
           textarea(id='notes', placeholder='Notes', name='notes') #{notes}
           input(type='file', id='print_file', name='print_file')
           p: input(type='submit', class='btn waves-effect waves-light green' id='submit', name='submit' value='Save')
