@@ -26,18 +26,18 @@ block content
       .row
         .col.s6
           label Patron ID
-          input(type='text', id='patron_id', placeholder='Patron ID (required)', name='patron_id' value=patronID)
+          input(type='text', id='patron_id', placeholder='(required)', name='patron_id' value=patronID)
           label Patron Grade
-          input(list='grade', id='patron_grade', placeholder='Patron Grade (required)', name='patron_grade' value=patronGRD)
+          input(list='grade', id='patron_grade', placeholder='(required)', name='patron_grade' value=patronGRD)
           datalist#grade
             option(value='Undergraduate')
             option(value='Graduate')
             option(value='Faculty')
             option(value='Other')
           label Patron Department
-          input(type='text', id='patron_department', placeholder='Patron Department (required)', name='patron_department' value=patronDPT)
+          input(type='text', id='patron_department', placeholder='(required)', name='patron_department' value=patronDPT)
           label Tech ID
-          input(type='text', id='tech_id', placeholder='Tech ID (required)', name='tech_id' value=techID)
+          input(type='text', id='tech_id', placeholder='(required)', name='tech_id' value=techID)
           .row
             .col.s6
               label: strong Date/Time Started (required)
