@@ -9,34 +9,39 @@ block content
     ul.card-panel.red.white-text
       li= dbErr
 
-  each row in results
-    - var printID = row.print_id
-    - var patronID = row.patron_id
-    - var patronGRD = row.patron_id
-    - var patronDPT = row.patron_department
-    - var techID = row.tech_id
-    - var finished = moment(row.date_finished).format('YYYY-MM-DD[T]kk:mm')
-    - var started = moment(row.date_started).format('YYYY-MM-DD[T]kk:mm')
-    - var printer = row.printer_setup
-    - var notes = row.notes
+  - var printID = results.print_id
+  - var patronID = results.patron_id
+  - var patronGRD = results.patron_id
+  - var patronDPT = results.patron_department
+  - var techID = results.tech_id
+  - var finished = moment(results.date_finished).format('YYYY-MM-DD[T]kk:mm')
+  - var started = moment(results.date_started).format('YYYY-MM-DD[T]kk:mm')
+  - var printer = results.printer_setup
+  - var notes = results.notes
 
-    - var s3URL = 'https://s3.amazonaws.com/' + process.env.S3_BUCKET + '/'
+  - var s3URL = 'https://s3.amazonaws.com/' + process.env.S3_BUCKET + '/'
   #print-form
     form(action='/detail', method='post', enctype='multipart/form-data')
       .row
         .col.s6
-          p: img.responsive-img(src=s3URL + row.image_file)
-          p: a(href=s3URL + row.print_file) Shape File
+          p: img.responsive-img(src=s3URL + results.image_file)
+          p: a(href=s3URL + results.print_file) Shape File
           .row
             .col.s4
-              a.btn.waves-effect.waves-light.red(href='' onClick='deletePrint(' + printID + ')') Delete
+              a.btn.waves-effect.waves-light.red.modal-trigger(href='#modal1') Delete
+              #modal1.modal
+                .modal-content
+                  h4 Delete Item
+                  p Are you sure?
+                .modal-footer
+                  a.modal-action.modal-close.waves-effect.waves-red.btn-flat(href='/detail/' + printID + '/delete') Delete
             .col.s4
               input.btn.waves-effect.waves-light.green(type='submit', id='submit', name='submit' value='Update')
             .col.s4
 
         .col.s6
           label Patron ID
-          input(type='text', id='patron_id', placeholder='Patron ID (required)', name='patron_id' value=patronID)
+          input(type='text' id='patron_id' placeholder='Patron ID (required)' name='patron_id' value=patronID)
           label Patron Grade
           input(list='grade', id='patron_grade', placeholder='Patron Grade (required)', name='patron_grade' value=patronGRD)
           datalist#grade

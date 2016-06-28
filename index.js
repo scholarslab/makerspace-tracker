@@ -112,34 +112,42 @@ app.get('/', function(req, res) {
 // // http://localhost/detail/printID
 app.get('/detail/:id', function (req, res) {
   Print.findById(req.params.id).then(function(print) {
-    res.render('detail', {results: print});
+    res.render('detail', {results: print.dataValues});
   });
 });
 
 // Delete Print Route::
 // Delete the specified print 
 // // http://localhost/detail/delete/printID
-app.delete('/detail/:id/delete', function (req, res) {
+app.get('/detail/:id/delete', function (req, res) {
+  // Get the values of the item to be deleted
   Print.findById(req.params.id).then(function(print) {
-    console.log(print.image_file);
+    // Drop the row from the database
     Print.destroy({where: {print_id: req.params.id}});
-    var params = { 
-      Bucket:  process.env.S3_BUCKET,
-      Delete: {
-        Objects: [
-          { Key: print.image_file },
-          { Key: print.print_file }
-        ]
+    // If there are files, delete them from S3
+    if ('' !== print.dataValues.image_file || '' !== print.dataValues.print_file) {
+      // Create an object from image and print files, to pass to objects parameter
+      var deleteFiles = [];
+      if ('' !== print.dataValues.image_file) {
+        deleteFiles.push({Key: print.dataValues.image_file});
       }
-    };
-    s3bucket.deleteObjects(params, function(err, data) {
-      if (err) {
-        console.log(err); 
-      } else {
-        res.redirect('/');
+      if ('' !== print.dataValues.print_file) {
+        deleteFiles.push({Key: print.dataValues.print_file});
       }
-    });
-    
+      var params = { 
+        Bucket:  process.env.S3_BUCKET,
+        Delete: { Objects: deleteFiles }
+      };
+      s3bucket.deleteObjects(params, function(err, data) {
+        if (err) {
+          console.error(err); 
+        } else {
+          res.redirect('/');
+        }
+      });
+    } else {
+      res.redirect('/');
+    }
   });
 });
 
@@ -161,10 +169,10 @@ app.post('/capture', upload.single('print_file'), function(req, res) {
   req.checkBody('patron_id', 'Patron ID must not be empty').notEmpty().isAlphanumeric();
 
   var patronGrade = req.body.patron_grade;
-  req.checkBody('patron_grade', 'Patron Grade must not be empty.').notEmpty().isAlpha();
+  req.checkBody('patron_grade', 'Patron Grade must not be empty.').notEmpty().isAlphanumeric();
 
   var patronDept = req.body.patron_department;
-  req.checkBody('patron_department', 'Patron Department must not be empty').notEmpty().isAlpha();
+  req.checkBody('patron_department', 'Patron Department must not be empty').notEmpty().isAlphanumeric();
 
   var techID = req.body.tech_id;
   req.checkBody('tech_id', 'Tech ID must not be empty').notEmpty().isAlphanumeric();
@@ -202,7 +210,8 @@ app.post('/capture', upload.single('print_file'), function(req, res) {
     res.render('capture', {errors: valErrors, fields: req.body} );
     if(shapePath !== '') {
       // delete the uploaded file
-      fs.unlink(shapePath);
+      //fs.unlink(shapePath);
+      console.log("delete uploaded file");
     }
     return;
   } else {
@@ -210,18 +219,18 @@ app.post('/capture', upload.single('print_file'), function(req, res) {
     var imageName = '';
     // image file is handled here
     if (req.body.image_file !== '') {
-      // get image data and convert from base64 to file and save to disk
       // generate name for image file and store the path in the database
       // http://stackoverflow.com/questions/10645994/node-js-how-to-format-a-date-string-in-utc
       var nameDate = moment().format('YYYY-MM-DD-kk-mm-ss');
       imageName = req.app.locals.image_path + nameDate + '-' + rstring.generate({length:11}) + '.jpg';
       var imagePath = __dirname + '/' + imageName;
 
-      //var img = Buffer.from(req.body.image_file, 'base64');
-      var data = { Key: imageName, Body: req.body.image_file, ContentEncoding: 'base64', ContentType: 'image/jpg' };
-      s3bucket.putObject(data, function (err, data) {
+      // get image data from form (as base64) and convert to file and save to S3
+      var img = Buffer.from(req.body.image_file, 'base64');
+      var params = { Key: imageName, Body: img, ContentEncoding: 'base64', ContentType: 'image/jpeg' };
+      s3bucket.upload(params, function (err, data) {
         if (err) {
-          console.log('Error uploading: ',  err);
+          console.error('Error uploading: ',  err);
         } else {
           console.log('Uploaded file successfully');
         }
@@ -255,6 +264,9 @@ app.post('/capture', upload.single('print_file'), function(req, res) {
 
 });
 
+app.get('*', function(req, res) {
+    res.redirect('/');
+});
 
 /******************************
   * Start the web server

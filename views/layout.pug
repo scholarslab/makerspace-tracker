@@ -2,14 +2,27 @@ doctype html
 head
   title= title
   link(rel='stylesheet' href='stylesheets/main.css')
-  // Compiled and minified CSS
-  link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css")
+  link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css')
+  link(rel='stylesheet' href='http://fonts.googleapis.com/icon?family=Material+Icons')
 
-  // Compiled and minified JavaScript 
-  script(src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min.js")
+  script(type='text/javascript' src='https://code.jquery.com/jquery-2.1.1.min.js')
+  script(type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min.js")
           
+  script(type='text/javascript').
+    $(document).ready(function() {
+      $('.modal-trigger').leanModal();
+    });
+    function deletePrint(id) {
+      $.ajax({
+        url: '/detail/' + id,
+        method: 'DELETE'
+      })
+    }
+  meta(name='viewport' content='width=device-width, initial-scale=1.0')
 
   body
+    .dialog
+      #confirm
     .container
       nav
         #nav-wrapper
@@ -19,12 +32,3 @@ head
 
       block content
       block footer
-        script(src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js")
-
-  script(type='text/javascript').
-    function deletePrint(id) {
-      $.ajax({
-        url: '/detail/' + id + '/delete',
-        type: 'DELETE'
-      });
-    }
