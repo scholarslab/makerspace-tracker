@@ -150,16 +150,16 @@ app.post('/detail/:id', upload.single('print_file'), function(req, res) {
   
   // Filter input
   var patronID = req.body.patron_id;
-  req.checkBody('patron_id', 'Patron ID must not be empty').notEmpty().isAlphanumeric();
+  req.checkBody('patron_id', 'Patron ID must not be empty, and can only be letters and numbers').notEmpty().isAlphanumeric();
 
   var patronGrade = req.body.patron_grade;
-  req.checkBody('patron_grade', 'Patron Grade must not be empty.').notEmpty().isAlphanumeric();
+  req.checkBody('patron_grade', 'Patron Grade must not be empty.').notEmpty();
 
   var patronDept = req.body.patron_department;
-  req.checkBody('patron_department', 'Patron Department must not be empty').notEmpty().isAlphanumeric();
+  req.checkBody('patron_department', 'Patron Department must not be empty').notEmpty();
 
   var techID = req.body.tech_id;
-  req.checkBody('tech_id', 'Tech ID must not be empty').notEmpty().isAlphanumeric();
+  req.checkBody('tech_id', 'Tech ID must not be empty, and can only be letters and numbers').notEmpty().isAlphanumeric();
 
   var dateCreated = rightNow;
   var dateModified =  rightNow;
@@ -196,7 +196,9 @@ app.post('/detail/:id', upload.single('print_file'), function(req, res) {
   // Validation Errors
   var valErrors = req.validationErrors(true);
   if (valErrors) {
-    res.render('detail', {errors: valErrors, results: req.body} );
+    new Print({print_id: req.params.id}).fetch().then(function(print) {
+      res.render('detail', {errors: valErrors, results: print.attributes});
+    });
     if(req.file !== undefined) {
       // delete the uploaded image file from S3
       s3bucket.deleteObject({ Bucket: process.env.S3_BUCKET, Key: req.file },
