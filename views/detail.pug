@@ -11,33 +11,38 @@ block content
 
   - var printID = results.print_id
   - var patronID = results.patron_id
-  - var patronGRD = results.patron_id
+  - var patronGRD = results.patron_grade
   - var patronDPT = results.patron_department
   - var techID = results.tech_id
   - var finished = moment(results.date_finished).format('YYYY-MM-DD[T]kk:mm')
   - var started = moment(results.date_started).format('YYYY-MM-DD[T]kk:mm')
   - var printer = results.printer_setup
   - var notes = results.notes
-
   - var s3URL = 'https://s3.amazonaws.com/' + process.env.S3_BUCKET + '/'
+  if results.print_file
+    - var printFile = results.print_file.replace('files/shapes/', '');
+
   #print-form
-    form(action='/detail', method='post', enctype='multipart/form-data')
+    form(action='/detail/'+ printID, method='post', enctype='multipart/form-data')
+      input(type='hidden', id='print_id', name='print_id', value=printID)
       .row
         .col.s6
-          p: img.responsive-img(src=s3URL + results.image_file)
-          p: a(href=s3URL + results.print_file) Shape File
           .row
-            .col.s4
-              a.btn.waves-effect.waves-light.red.modal-trigger(href='#modal1') Delete
-              #modal1.modal
-                .modal-content
-                  h4 Delete Item
-                  p Are you sure?
-                .modal-footer
-                  a.modal-action.modal-close.waves-effect.waves-red.btn-flat(href='/detail/' + printID + '/delete') Delete
-            .col.s4
-              input.btn.waves-effect.waves-light.green(type='submit', id='submit', name='submit' value='Update')
-            .col.s4
+            - if(results.image_file)
+              p: img.responsive-img(src=s3URL + results.image_file)
+              input(type='hidden', id='existing_imagefile', name='existing_imagefile', value=results.image_file)
+
+            input(type='hidden', id='image_file', name='image_file' value='')
+            #live_camera
+            a.btn.waves-effect.waves-light(href="javascript:void(take_snapshot())") Take Snapshot
+            #snapshot()
+          .row
+            - if(results.print_file)
+                label Shape File
+                p: a(href=s3URL + results.print_file)= printFile
+                input(type='hidden', id='existing_shapefile', name='existing_shapefile', value=results.print_file)
+
+            p: input(type='file', id='print_file', name='print_file')
 
         .col.s6
           label Patron ID
@@ -65,3 +70,15 @@ block content
           textarea(id='printer_setup', placeholder='Printer Settings: \n\tnozzle size: \n\tfilament type: \n\tfilament color:', name='printer_setup') #{printer}
           label Notes
           textarea(id='notes', placeholder='Notes', name='notes') #{notes}
+          .row
+            .col.s3
+              a.btn.waves-effect.waves-light.red.modal-trigger(href='#modal1') Delete
+              #modal1.modal
+                .modal-content
+                  h4 Delete Item
+                  p Are you sure?
+                .modal-footer
+                  a.modal-action.modal-close.waves-effect.waves-yellow.btn-flat(href='#!') Cancel
+                  a.modal-action.modal-close.waves-effect.waves-red.btn-flat(href='/detail/' + printID + '/delete') Delete
+            .col.s3
+              input.btn.waves-effect.waves-light.green(type='submit', id='submit', name='submit' value='Update')
