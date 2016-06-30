@@ -12,12 +12,6 @@ head
     $(document).ready(function() {
       $('.modal-trigger').leanModal();
     });
-    function deletePrint(id) {
-      $.ajax({
-        url: '/detail/' + id,
-        method: 'DELETE'
-      })
-    }
   meta(name='viewport' content='width=device-width, initial-scale=1.0')
 
   body
