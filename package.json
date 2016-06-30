@@ -12,10 +12,12 @@
   },
   "dependencies": {
     "aws-sdk": "2.3.19",
+    "bookshelf": "0.10.0",
     "dotenv": "2.0.0",
     "express": "4.13.3",
     "express-validator": "2.20.4",
     "fs": "0.0.2",
+    "knex": "0.11.7",
     "moment": "2.13.0",
     "multer": "1.1.0",
     "multer-storage-s3": "1.1.1",
@@ -23,8 +25,7 @@
     "pg-hstore": "2.3.2",
     "pug": "2.0.0-alpha7",
     "pug-load": "1.0.3",
-    "randomstring": "1.1.4",
-    "sequelize": "3.23.3"
+    "randomstring": "1.1.4"
   },
   "repository": {
     "type": "git",

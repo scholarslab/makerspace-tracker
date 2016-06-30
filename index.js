@@ -12,7 +12,6 @@ var multers3 = require('multer-storage-s3');
 var path = require('path');
 var pg = require('pg');
 var rstring = require('randomstring');
-var Sequelize = require('sequelize');
 var util = require('util');
 var valid = require('express-validator');
 
@@ -28,26 +27,13 @@ dotenv.load();
 // database connection
 DB_URL = process.env.DATABASE_URL;
 pg.defaults.ssl = true;
-var sqlize = new Sequelize(DB_URL);
-
-// Database Models
-var Print = sqlize.define('print', {
-  print_id: { type: Sequelize.INTEGER, field: 'print_id', allowNull: false, unique: true, autoIncrement: true, primaryKey: true },
-  patron_id: { type: Sequelize.STRING, field: 'patron_id', allowNull: false },
-  patron_grade: { type: Sequelize.STRING, field: 'patron_grade', allowNull: false },
-  patron_department: { type: Sequelize.STRING, field: 'patron_department', allowNull: false },
-  tech_id: { type: Sequelize.STRING, field: 'tech_id', allowNull: false },
-  date_created: { type: Sequelize.DATE, field: 'date_created', allowNull: false, defaultValue: Sequelize.NOW },
-  date_modified: { type: Sequelize.DATE, field: 'date_modified', allowNull: false },
-  date_started: { type: Sequelize.DATE, field: 'date_started', allowNull: false },
-  date_finished: { type: Sequelize.DATE, field: 'date_finished', allowNull: false },
-  printer_setup: { type: Sequelize.TEXT, field: 'printer_setup' },
-  notes: { type: Sequelize.TEXT, field: 'notes' },
-  image_file: { type: Sequelize.STRING, field: 'image_file' },
-  print_file: { type: Sequelize.STRING, field: 'print_file' }
-  },
-  {createdAt: 'date_created', updatedAt: 'date_modified'}
-);
+var knex = require('knex')({client: 'pg', connection: DB_URL});
+var dbPool = require('bookshelf')(knex);
+var Print = dbPool.Model.extend({
+  tableName: 'prints',
+  idAttribute: 'print_id',
+  hasTimestamps: ['date_created', 'date_modified']
+});
 
 // Set the port to listen on
 app.set('port', (process.env.PORT || 5000));
@@ -102,8 +88,8 @@ var upload = multer({ storage: storage });
 // Show the prints in the database
 // http://localhost/
 app.get('/', function(req, res) {
-  Print.all().then(function(prints) {
-    res.render('prints', {results: prints} ); 
+  new Print().fetchAll().then(function(prints) {
+    res.render('prints', {results: prints.models} ); 
   });
 });
 
@@ -111,28 +97,29 @@ app.get('/', function(req, res) {
 // Display detail info about print 
 // // http://localhost/detail/printID
 app.get('/detail/:id', function (req, res) {
-  Print.findById(req.params.id).then(function(print) {
-    res.render('detail', {results: print.dataValues});
+  new Print({print_id: req.params.id}).fetch().then(function(print) {
+    res.render('detail', {results: print.attributes});
   });
 });
 
 // Delete Print Route::
 // Delete the specified print 
-// // http://localhost/detail/delete/printID
+// http://localhost/detail/printID/delete
 app.get('/detail/:id/delete', function (req, res) {
   // Get the values of the item to be deleted
-  Print.findById(req.params.id).then(function(print) {
+  new Print({print_id: req.params.id}).fetch().then(function(print) {
     // Drop the row from the database
-    Print.destroy({where: {print_id: req.params.id}});
+    new Print().where('print_id', print.attributes.print_id).destroy();
+
     // If there are files, delete them from S3
-    if ('' !== print.dataValues.image_file || '' !== print.dataValues.print_file) {
+    if ('' !== print.attributes.image_file || '' !== print.attributes.print_file) {
       // Create an object from image and print files, to pass to objects parameter
       var deleteFiles = [];
-      if ('' !== print.dataValues.image_file) {
-        deleteFiles.push({Key: print.dataValues.image_file});
+      if ('' !== print.attributes.image_file) {
+        deleteFiles.push({Key: print.attributes.image_file});
       }
-      if ('' !== print.dataValues.print_file) {
-        deleteFiles.push({Key: print.dataValues.print_file});
+      if ('' !== print.attributes.print_file) {
+        deleteFiles.push({Key: print.attributes.print_file});
       }
       var params = { 
         Bucket:  process.env.S3_BUCKET,
@@ -148,8 +135,151 @@ app.get('/detail/:id/delete', function (req, res) {
     } else {
       res.redirect('/');
     }
+
   });
 });
+
+// Update Detail Page (handle results from POST):
+// Update the information for the print
+// http://localhost/detail/:id
+app.post('/detail/:id', upload.single('print_file'), function(req, res) {
+
+  var timeFormat = 'YYYY-MM-DD kk:mm:ss';
+  var rightNow = moment().format(timeFormat);
+  var printID = req.body.print_id;
+  
+  // Filter input
+  var patronID = req.body.patron_id;
+  req.checkBody('patron_id', 'Patron ID must not be empty').notEmpty().isAlphanumeric();
+
+  var patronGrade = req.body.patron_grade;
+  req.checkBody('patron_grade', 'Patron Grade must not be empty.').notEmpty().isAlphanumeric();
+
+  var patronDept = req.body.patron_department;
+  req.checkBody('patron_department', 'Patron Department must not be empty').notEmpty().isAlphanumeric();
+
+  var techID = req.body.tech_id;
+  req.checkBody('tech_id', 'Tech ID must not be empty').notEmpty().isAlphanumeric();
+
+  var dateCreated = rightNow;
+  var dateModified =  rightNow;
+
+  var dateFinished = req.body.date_finished;
+  req.checkBody('date_finished', 'Please enter a valid finished date').notEmpty().isDate();
+
+  var dateStarted = req.body.date_started;
+  req.checkBody('date_started', 'Please enter a valid start date (must be before date finished)').notEmpty().isDate().isBefore(dateFinished);
+
+  var printerSetup = req.body.printer_setup;
+  req.checkBody('tech_id', 'Tech ID must not be empty').optional().isAlphanumeric();
+
+  var notes = req.body.notes;
+  req.checkBody('tech_id', 'Tech ID must not be empty').optional().isAlphanumeric();
+
+
+  var shapePath = '';
+  // print_file is taken care of with multer, code above.
+  if (req.file !== undefined){
+    if (req.body.existing_shapefile) {
+      //delete the existing old shape file from S3
+      s3bucket.deleteObject({ Bucket: process.env.S3_BUCKET, Key: req.body.existing_shapefile },
+        function(err, data) { if (err) console.error(err); }
+      );
+    }
+    shapePath = req.file.path;
+  }
+
+  if (req.body.image_file !== '') {
+    req.checkBody('image_file', 'Image not an image file').optional().isBase64();
+  }
+
+  // Validation Errors
+  var valErrors = req.validationErrors(true);
+  if (valErrors) {
+    res.render('detail', {errors: valErrors, results: req.body} );
+    if(req.file !== undefined) {
+      // delete the uploaded image file from S3
+      s3bucket.deleteObject({ Bucket: process.env.S3_BUCKET, Key: req.file },
+        function(err, data) { if (err) console.error(err); }
+      );
+    }
+    return;
+  } else {
+    
+    var imageName = '';
+    // image file is handled here
+    if (req.body.image_file !== '') {
+      if (req.body.existing_imagefile) {
+        // Delete existing old image file from S3
+      }
+      
+      // generate name for image file and store the path in the database
+      // http://stackoverflow.com/questions/10645994/node-js-how-to-format-a-date-string-in-utc
+      var nameDate = moment().format('YYYY-MM-DD-kk-mm-ss');
+      imageName = req.app.locals.image_path + nameDate + '-' + rstring.generate({length:11}) + '.jpg';
+      var imagePath = __dirname + '/' + imageName;
+
+      // get image data from form (as base64) and convert to file and save to S3
+      var img = Buffer.from(req.body.image_file, 'base64');
+      var params = { Key: imageName, Body: img, ContentEncoding: 'base64', ContentType: 'image/jpeg' };
+      s3bucket.upload(params, function (err, data) {
+        if (err) {
+          console.error('Error uploading: ',  err);
+        }
+      });
+
+    }
+
+    // Assemble the object of table and value pairs
+    var updates = {
+      patron_id: patronID,
+      patron_grade: patronGrade,
+      patron_department: patronDept,
+      tech_id: techID,
+      date_created: dateCreated,
+      date_modified: dateModified, 
+      date_started: dateStarted, 
+      date_finished: dateFinished, 
+      printer_setup: printerSetup, 
+      notes: notes};
+
+    if (req.body.image_file !== '') {
+      updates.image_file = imageName;
+    }
+
+    if(req.file !== undefined) {
+      updates.print_file = shapePath;
+    }
+
+    // Update the record in the database
+    new Print().where('print_id', printID).save(updates, {patch: true})
+    .then(function(){
+      new Print().fetch({print_id: printID}).then(function(print) {
+        res.render('detail', {results: print.attributes});
+      });
+    })
+    .catch(function(error){
+      new Print().fetch({print_id: printID}).then(function(print) {
+        res.render('detail', {results: print.attributes});
+      });
+      if('' !== shapePath) {
+        //delete the shape file from S3
+        s3bucket.deleteObject({ Bucket: process.env.S3_BUCKET, Key: req.body.existing_shapefile },
+          function(err, data) { if (err) console.error(err); }
+        );
+      }
+      if ('' !== req.body.image_file) {
+        // delete the uploaded image file from S3
+        s3bucket.deleteObject({ Bucket:  process.env.S3_BUCKET, Key: req.file },
+          function(err, data) { if (err) console.error(err); }
+        );
+      }
+      return console.error('error running query', error);
+    });
+
+  } // end if...else validate for errors
+});
+
 
 // Capture Page (blank form):
 // http://localhost/capture
@@ -180,12 +310,10 @@ app.post('/capture', upload.single('print_file'), function(req, res) {
   var dateCreated = rightNow;
   var dateModified =  rightNow;
 
-  var fdate = req.body.date_finished.replace(/T/, ' ');
-  var dateFinished = moment(fdate).format(timeFormat);
+  var dateFinished = req.body.date_finished;
   req.checkBody('date_finished', 'Please enter a valid finished date').notEmpty().isDate();
 
-  var sdate = req.body.date_started.replace(/T/, ' ');
-  var dateStarted = moment(sdate).format(timeFormat);
+  var dateStarted = req.body.date_started;
   req.checkBody('date_started', 'Please enter a valid start date (must be before date finished)').notEmpty().isDate().isBefore(dateFinished);
 
   var printerSetup = req.body.printer_setup;
@@ -209,9 +337,10 @@ app.post('/capture', upload.single('print_file'), function(req, res) {
   if (valErrors) {
     res.render('capture', {errors: valErrors, fields: req.body} );
     if(shapePath !== '') {
-      // delete the uploaded file
-      //fs.unlink(shapePath);
-      console.log("delete uploaded file");
+      //delete the shape file from S3
+      s3bucket.deleteObject({ Bucket: process.env.S3_BUCKET, Key: shapePath },
+        function(err, data) { if (err) console.error(err); }
+      );
     }
     return;
   } else {
@@ -231,37 +360,56 @@ app.post('/capture', upload.single('print_file'), function(req, res) {
       s3bucket.upload(params, function (err, data) {
         if (err) {
           console.error('Error uploading: ',  err);
-        } else {
-          console.log('Uploaded file successfully');
         }
       });
 
     }
 
-    // add info to the database
-    pg.connect(DB_URL, function(err, client, done) {
-      if(err) {
-        return console.error('error fetching client from pool', err);
+    // Assemble the object of table and value pairs
+    var updates = {
+      patron_id: patronID,
+      patron_grade: patronGrade,
+      patron_department: patronDept,
+      tech_id: techID,
+      date_created: dateCreated,
+      date_modified: dateModified, 
+      date_started: dateStarted, 
+      date_finished: dateFinished, 
+      printer_setup: printerSetup, 
+      notes: notes};
+
+    if (req.body.image_file !== '') {
+      updates.image_file = imageName;
+    }
+
+    if(req.file !== undefined) {
+      updates.print_file = shapePath;
+    }
+
+    // Update the record in the database
+    new Print(updates).save()
+    .then(function(){
+      res.render('capture');
+    })
+    .catch(function(error){
+      res.render('capture');
+      if('' !== shapePath) {
+        //delete the shape file from S3
+        s3bucket.deleteObject({ Bucket: process.env.S3_BUCKET, Key: shapePath }, 
+          function(err, data) { if (err) console.error(err); }
+        );
       }
-      client.query('INSERT INTO prints (patron_id, patron_grade, patron_department, tech_id, date_created, date_modified, date_started, date_finished, printer_setup, notes, image_file, print_file) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)', [patronID, patronGrade, patronDept, techID, dateCreated, dateModified, dateStarted, dateFinished, printerSetup, notes, imageName, shapePath] , function(dberr, result) {
-        done();
-        if(dberr) {
-          res.render('capture', {dbErr: dberr, fields: req.body} );
-          if(shapePath !== '') {
-            // delete the uploaded file
-            fs.unlink(shapePath);
-          }
-          if (req.body.image_file !== '') {
-            fs.unlink(imagePath);
-          }
-          return console.error('error running query', dberr);
-        }
-      });
+      if ('' !== req.body.image_file) {
+        // delete the uploaded image file from S3
+        s3bucket.deleteObject({ Bucket: process.env.S3_BUCKET, Key: req.file },
+          function(err, data) { if (err) console.error(err); }
+        );
+      }
+      return console.error('error running query', error);
     });
 
-    res.render('capture');
-  }
 
+  }
 });
 
 app.get('*', function(req, res) {

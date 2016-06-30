@@ -14,17 +14,17 @@ block content
         each row in results
           tr
             td
-              a(href='/detail/' + row.print_id)= row.print_id
+              a(href='/detail/' + row.attributes.print_id)= row.attributes.print_id
             td
-              - if(row.image_file)
-                a(href='/detail/' + row.print_id)
-                  img.responsive-img(src=s3URL + row.image_file)
-            td: pre= row.printer_setup
+              - if(row.attributes.image_file)
+                a(href='/detail/' + row.attributes.print_id)
+                  img.responsive-img(src=s3URL + row.attributes.image_file)
+            td: pre= row.attributes.printer_setup
             td 
-              - if(row.print_file)
-                - var shapeFile = row.print_file.replace('files/shapes/', '');
-                a(href=s3URL + row.print_file)= shapeFile
-            td: pre= row.notes
-            td= row.patron_id
-            td= row.tech_id
-            td.date= moment(row.date_created).format('MMM DD, YYYY')
+              - if(row.attributes.print_file)
+                - var shapeFile = row.attributes.print_file.replace('files/shapes/', '');
+                a(href=s3URL + row.attributes.print_file)= shapeFile
+            td: pre= row.attributes.notes
+            td= row.attributes.patron_id
+            td= row.attributes.tech_id
+            td.date= moment(row.attributes.date_created).format('MMM DD, YYYY')
