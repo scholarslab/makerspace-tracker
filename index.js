@@ -67,12 +67,11 @@ var storage = multers3({
   filename: function (req, file, cb) {
     // don't save file extension?
     // https://github.com/expressjs/multer/issues/170
-    // If shape file, save with .stl
     if ( file.mimetype == 'application/octet-stream' ){
         var nameDateTime = moment().format('YYYY-MM-DD-kk-mm-ss');
         var fileExt = path.extname(file.originalname);
         var fileName = path.basename(file.originalname, fileExt);
-        cb(null, nameDateTime + '-' + fileName + '-' + rstring.generate({length:8}) + fileExt);
+        cb(null, fileName + '-' + nameDateTime + '-' + rstring.generate({length:8}) + fileExt);
     } else {
       // return error that only accepts certain file types
     }
