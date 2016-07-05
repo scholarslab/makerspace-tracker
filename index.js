@@ -87,7 +87,7 @@ var upload = multer({ storage: storage });
 // Show the prints in the database
 // http://localhost/
 app.get('/', function(req, res) {
-  new Print().fetchAll().then(function(prints) {
+  Print.forge().orderBy('date_modified', 'ASC').fetchAll().then(function(prints) {
     res.render('prints', {results: prints.models} ); 
   });
 });
@@ -160,7 +160,7 @@ app.post('/detail/:id', upload.single('print_file'), function(req, res) {
   var techID = req.body.tech_id;
   req.checkBody('tech_id', 'Tech ID must not be empty, and can only be letters and numbers').notEmpty().isAlphanumeric();
 
-  var dateCreated = rightNow;
+  var dateCreated = req.body.date_created;
   var dateModified =  rightNow;
 
   var dateFinished = req.body.date_finished;

@@ -14,6 +14,7 @@ block content
   - var patronGRD = results.patron_grade
   - var patronDPT = results.patron_department
   - var techID = results.tech_id
+  - var dateCreated = results.date_created
   - var finished = moment(results.date_finished).format('YYYY-MM-DD[T]kk:mm')
   - var started = moment(results.date_started).format('YYYY-MM-DD[T]kk:mm')
   - var printer = results.printer_setup
@@ -25,6 +26,7 @@ block content
   #print-form
     form(action='/detail/'+ printID, method='post', enctype='multipart/form-data')
       input(type='hidden', id='print_id', name='print_id', value=printID)
+      input(type='hidden', id='date_created', name='date_created', value=dateCreated)
       .row
         .col.s6
           .row
