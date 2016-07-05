@@ -256,12 +256,12 @@ app.post('/detail/:id', upload.single('print_file'), function(req, res) {
     // Update the record in the database
     new Print().where('print_id', printID).save(updates, {patch: true})
     .then(function(){
-      new Print().fetch({print_id: printID}).then(function(print) {
+      new Print({print_id: req.params.id}).fetch().then(function(print) {
         res.render('detail', {results: print.attributes});
       });
     })
     .catch(function(error){
-      new Print().fetch({print_id: printID}).then(function(print) {
+      new Print({print_id: req.params.id}).fetch().then(function(print) {
         res.render('detail', {results: print.attributes});
       });
       if('' !== shapePath) {
