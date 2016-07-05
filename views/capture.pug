@@ -24,42 +24,56 @@ block content
   #print-form
     form(action='/capture', method='post', enctype='multipart/form-data')
       .row
-        .col.s6
-          label Patron ID
-          input(type='text', id='patron_id', placeholder='(required)', name='patron_id' value=patronID)
-          label Patron Grade
-          input(list='grade', id='patron_grade', placeholder='(required)', name='patron_grade' value=patronGRD)
-          datalist#grade
-            option(value='Undergraduate')
-            option(value='Graduate')
-            option(value='Faculty')
-            option(value='Other')
-          label Patron Department
-          input(type='text', id='patron_department', placeholder='(required)', name='patron_department' value=patronDPT)
-          label Tech ID
-          input(type='text', id='tech_id', placeholder='(required)', name='tech_id' value=techID)
+        .col.s12.l6
+          div(data-role='fieldcontain')
+            label(for='patron_id') Patron ID
+            input(type='text', id='patron_id', placeholder='(required)', name='patron_id' value=patronID)
+          div(data-role='fieldcontain')
+            label(for='patron_grade') Patron Grade
+            input(list='grade', id='patron_grade', placeholder='(required)', name='patron_grade' value=patronGRD)
+            datalist#grade
+              option(value='Undergraduate')
+              option(value='Graduate')
+              option(value='Faculty')
+              option(value='Other')
+          div(data-role='fieldcontain')
+            label(for='patron_department') Patron Department
+            input(type='text', id='patron_department', placeholder='(required)', name='patron_department' value=patronDPT)
+          div(data-role='fieldcontain')
+            label(for='tech_id') Tech ID
+            input(type='text', id='tech_id', placeholder='(required)', name='tech_id' value=techID)
           .row
-            .col.s6
-              label: strong Date/Time Started (required)
-              input(type='datetime-local', id='date_started', name='date_started' value=started)
-            .col.s6
-              label: strong Date/Time Finished (required)
-              input(type='datetime-local', id='date_finished', name='date_finished' value=finished)
+            .col.s12.l6
+              div(data-role='fieldcontain')
+                label(for='date_started'): strong Date/Time Started (required)
+                input(type='datetime-local', id='date_started', name='date_started' value=started)
+            .col.s12.l6
+              div(data-role='fieldcontain')
+                label(for='date_finished'): strong Date/Time Finished (required)
+                input(type='datetime-local', id='date_finished', name='date_finished' value=finished)
 
-          label Printer Settings
-          textarea(id='printer_setup', placeholder='Printer Settings: \n\tnozzle size: \n\tfilament type: \n\tfilament color:', name='printer_setup') #{printer}
-          label Notes
-          textarea(id='notes', placeholder='Notes', name='notes') #{notes}
-          input(type='file', id='print_file', name='print_file')
-          p: input(type='submit', class='btn waves-effect waves-light green' id='submit', name='submit' value='Save')
+          div(data-role='fieldcontain')
+            label(for='printer_setup') Printer Settings
+            textarea(id='printer_setup', placeholder='Printer Settings: \n\tnozzle size: \n\tfilament type: \n\tfilament color:', name='printer_setup') #{printer}
+          div(data-role='fieldcontain')
+            label(for='notes') Notes
+            textarea(id='notes', placeholder='Notes', name='notes') #{notes}
+          div(data-role='fieldcontain')
+            label(for='print_file') Shape File
+            p: input(type='file', id='print_file', name='print_file')
 
-        .col.s6
+        .col.s12.l6
           input(type='hidden', id='image_file', name='image_file' value='')
           script(src='/webcam.js')
           #live_camera
           a.btn.waves-effect.waves-light(href="javascript:void(take_snapshot())") Take Snapshot
           #snapshot()
           script(src='/pics.js')
+
+      .row
+        .col.s12
+          div(data-role='fieldcontain')
+            p: input(type='submit', class='btn waves-effect waves-light green' id='submit', name='submit' value='Save')
 
 
 

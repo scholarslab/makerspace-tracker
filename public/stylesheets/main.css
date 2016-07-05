@@ -7,7 +7,7 @@
 }
 
 td {
-  min-width: 100px;
+  max-width: 100px;
 }
 
 #live_camera{

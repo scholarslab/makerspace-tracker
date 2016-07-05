@@ -18,11 +18,11 @@ head
     .dialog
       #confirm
     .container
-      nav
-        #nav-wrapper
-          a(href="/" class="brand-logo") MakerSpace 3D Prints
-            ul(id="nav-mobile" class="right hide-on-med-and-down")
-              li: a.btn.indigo(href="/capture") Capture
+      .row
+        .col.s12.m6.l10.green.lighten-2
+          h3: a.brand-logo(href="/") MakerSpace 3D Prints
+        .col.s12.m6.l2
+        a.btn.blue(href="/capture") Capture
 
       block content
       block footer

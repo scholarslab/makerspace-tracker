@@ -3,7 +3,7 @@ extends layout
 block content
   - var headers = [ "Print ID", "Image", "Printer & Setup", "Print File", "Notes", "Patron", "Tech", "Date Created" ]
   - var s3URL = 'https://s3.amazonaws.com/' + process.env.S3_BUCKET + '/'
-  #table-content
+  #table-content.s12
     table.striped.responsive-table.bordered
       thead
           tr

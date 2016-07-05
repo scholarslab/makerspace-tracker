@@ -14,7 +14,7 @@ Webcam.attach( '#live_camera' );
 function take_snapshot() {
     Webcam.snap( function(data_uri) {
       // Show the image under the video feed
-      document.getElementById('snapshot').innerHTML = '<img style="width:320px; height:240px; margin: 8px;" src="'+data_uri+'"/>';
+      document.getElementById('snapshot').innerHTML = '<img class="responsive-image" style="width:320px; height:240px; margin: 8px;" src="'+data_uri+'"/>';
 
       // Insert data into input field as Base64 encode
       var raw_image_data = data_uri.replace(/^data\:image\/\w+\;base64\,/, '');

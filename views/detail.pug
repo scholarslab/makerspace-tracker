@@ -28,7 +28,7 @@ block content
       input(type='hidden', id='print_id', name='print_id', value=printID)
       input(type='hidden', id='date_created', name='date_created', value=dateCreated)
       .row
-        .col.s6
+        .col.s12.l6
           .row
             - if(results.image_file)
               p: img.responsive-img(src=s3URL + results.image_file)
@@ -48,7 +48,7 @@ block content
 
             p: input(type='file', id='print_file', name='print_file')
 
-        .col.s6
+        .col.s12.l6
           label Patron ID
           input(type='text' id='patron_id' placeholder='Patron ID (required)' name='patron_id' value=patronID)
           label Patron Grade
@@ -63,10 +63,10 @@ block content
           label Tech ID
           input(type='text', id='tech_id', placeholder='Tech ID (required)', name='tech_id' value=techID)
           .row
-            .col.s6
+            .col.s12.l6
               label Date/Time Started
               input(type='datetime-local', id='date_started', name='date_started' value=started)
-            .col.s6
+            .col.s12.l6
               label Date/Time Finished
               input(type='datetime-local', id='date_finished', name='date_finished' value=finished)
 
@@ -75,7 +75,7 @@ block content
           label Notes
           textarea(id='notes', placeholder='Notes', name='notes') #{notes}
           .row
-            .col.s3
+            .col.s6
               a.btn.waves-effect.waves-light.red.modal-trigger(href='#modal1') Delete
               #modal1.modal
                 .modal-content
@@ -84,5 +84,5 @@ block content
                 .modal-footer
                   a.modal-action.modal-close.waves-effect.waves-yellow.btn-flat(href='#!') Cancel
                   a.modal-action.modal-close.waves-effect.waves-red.btn-flat(href='/detail/' + printID + '/delete') Delete
-            .col.s3
+            .col.s6
               input.btn.waves-effect.waves-light.green(type='submit', id='submit', name='submit' value='Update')
