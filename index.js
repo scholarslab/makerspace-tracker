@@ -87,7 +87,7 @@ var upload = multer({ storage: storage });
 // Show the prints in the database
 // http://localhost/
 app.get('/', function(req, res) {
-  Print.forge().orderBy('date_modified', 'ASC').fetchAll().then(function(prints) {
+  Print.forge().orderBy('date_modified', 'DESC').fetchAll().then(function(prints) {
     res.render('prints', {results: prints.models} ); 
   });
 });
