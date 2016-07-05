@@ -6,9 +6,7 @@ Webcam.set( 'constraints', {
     } );
 Webcam.set({
   width: 320,
-  height: 240,
-  dest_width: 1280,
-  dest_height: 960
+  height: 240
 });
 Webcam.attach( '#live_camera' );
 function take_snapshot() {
