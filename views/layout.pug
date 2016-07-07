@@ -11,6 +11,10 @@ head
   script(type='text/javascript').
     $(document).ready(function() {
       $('.modal-trigger').leanModal();
+      $('.datepicker').pickadate({
+        selectMonths: true, // Creates a dropdown to control month
+        selectYears: 15 // Creates a dropdown of 15 years to control year
+      });
     });
   meta(name='viewport' content='width=device-width, initial-scale=1.0')
 
@@ -18,11 +22,12 @@ head
     .dialog
       #confirm
     .container
-      .row
-        .col.s12.m6.l10.green.lighten-2
+      .row.green.lighten-2.valign-wrapper
+        .col.s12.m6.l2.valign
+          a.btn-large.blue(href="/capture")
+            i.material-icons photo_camera
+        .col.s12.m6.l10
           h3: a.brand-logo(href="/") MakerSpace 3D Prints
-        .col.s12.m6.l2
-        a.btn.blue(href="/capture") Capture
 
       block content
       block footer
