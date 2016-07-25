@@ -25,55 +25,57 @@ block content
     form(action='/capture', method='post', enctype='multipart/form-data')
       .row
         .col.s12.l6
-          div(data-role='fieldcontain')
+          div.input-field(data-role='fieldcontain')
             label(for='patron_id') Patron ID
-            input(type='text', id='patron_id', placeholder='(required)', name='patron_id' value=patronID)
-          div(data-role='fieldcontain')
-            label(for='patron_grade') Patron Grade
-            input(list='grade', id='patron_grade', placeholder='(required)', name='patron_grade' value=patronGRD)
+            input.validate#patron_id(type='text' placeholder='(required)' name='patron_id' value=patronID)
+          div.input-field(data-role='fieldcontain')
+            label.active(for='patron_grade') Patron Grade
+            input.validate#patron_grade(list='grade' placeholder='(required)' name='patron_grade' value=patronGRD)
             datalist#grade
               option(value='Undergraduate')
               option(value='Graduate')
               option(value='Faculty')
               option(value='Other')
-          div(data-role='fieldcontain')
+          div.input-field(data-role='fieldcontain')
             label(for='patron_department') Patron Department
-            input(type='text', id='patron_department', placeholder='(required)', name='patron_department' value=patronDPT)
-          div(data-role='fieldcontain')
+            input.validate#patron_department(type='text' placeholder='(required)' name='patron_department' value=patronDPT)
+          div.input-field(data-role='fieldcontain')
             label(for='tech_id') Tech ID
-            input(type='text', id='tech_id', placeholder='(required)', name='tech_id' value=techID)
+            input.validate#tech_id(type='text' placeholder='(required)' name='tech_id' value=techID)
           .row
             .col.s12.l6
-              div(data-role='fieldcontain')
-                label(for='date_started'): strong Date/Time Started (required)
-                input(type='datetime-local', id='date_started', name='date_started' value=started)
+              div.input-field(data-role='fieldcontain')
+                label.active(for='date_started'): strong Date/Time Started (required)
+                input.validate.datepicker#date_started(type='datetime-local' name='date_started' value=started)
             .col.s12.l6
-              div(data-role='fieldcontain')
-                label(for='date_finished'): strong Date/Time Finished (required)
-                input(type='datetime-local', id='date_finished', name='date_finished' value=finished)
+              div.input-field(data-role='fieldcontain')
+                label.active(for='date_finished'): strong Date/Time Finished (required)
+                input.validate.datepicker#date_finished(type='datetime-local' name='date_finished' value=finished)
 
-          div(data-role='fieldcontain')
+          div.input-field(data-role='fieldcontain')
             label(for='printer_setup') Printer Settings
-            textarea(id='printer_setup', placeholder='Printer Settings: \n\tnozzle size: \n\tfilament type: \n\tfilament color:', name='printer_setup') #{printer}
-          div(data-role='fieldcontain')
+            textarea#printer_setup(placeholder='Printer Settings: \n\tnozzle size: \n\tfilament type: \n\tfilament color:' name='printer_setup') #{printer}
+          div.input-field(data-role='fieldcontain')
             label(for='notes') Notes
-            textarea(id='notes', placeholder='Notes', name='notes') #{notes}
-          div(data-role='fieldcontain')
-            label(for='print_file') Shape File
-            p: input(type='file', id='print_file', name='print_file')
-
+            textarea#notes(placeholder='Notes' name='notes') #{notes}
+          div.input-field.file-field(data-role='fieldcontain')
+            .btn
+              span Add File
+              input.validate#print_file(type='file' name='print_file')
+            .file-path-wrapper
+              input.file-path.validate(type='text')
         .col.s12.l6
-          input(type='hidden', id='image_file', name='image_file' value='')
+          input.validate#image_file(type='hidden' name='image_file' value='')
           script(src='/webcam.js')
           #live_camera
-          a.btn.waves-effect.waves-light(href="javascript:void(take_snapshot())") Take Snapshot
+          a.btn-large.waves-effect.waves-light(href="javascript:void(take_snapshot())") Take Snapshot
           #snapshot()
           script(src='/pics.js')
 
       .row
         .col.s12
-          div(data-role='fieldcontain')
-            p: input(type='submit', class='btn waves-effect waves-light green' id='submit', name='submit' value='Save')
+          div.input-field(data-role='fieldcontain')
+            p: input.validate.btn.waves-effect.waves-light.green#submit(type='submit' name='submit' value='Save')
 
 
 
