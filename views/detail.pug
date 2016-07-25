@@ -25,18 +25,18 @@ block content
 
   #print-form
     form(action='/detail/'+ printID, method='post', enctype='multipart/form-data')
-      input(type='hidden', id='print_id', name='print_id', value=printID)
-      input(type='hidden', id='date_created', name='date_created', value=dateCreated)
+      input#print_id(type='hidden' name='print_id' value=printID)
+      input#date_created(type='hidden' name='date_created' value=dateCreated)
       .row
         .col.s12.l6
           .row
             - if(results.image_file)
               p: img.responsive-img(src=s3URL + results.image_file)
-              input(type='hidden', id='existing_imagefile', name='existing_imagefile', value=results.image_file)
+              input#existing_imagefile(type='hidden' name='existing_imagefile' value=results.image_file)
 
             #take-snapshot.teal.lighten-5
               h6.green.lighten-2.center-align Snapshot
-              input(type='hidden', id='image_file', name='image_file' value='')
+              input#image_file(type='hidden' name='image_file' value='')
               script(src='/webcam.js')
               #live_camera.center-align
               a.btn.waves-effect.waves-light(href="javascript:void(take_snapshot())") Take Snapshot
@@ -46,40 +46,40 @@ block content
             - if(results.print_file)
                 label Shape File
                 p: a(href=s3URL + results.print_file)= printFile
-                input(type='hidden', id='existing_shapefile', name='existing_shapefile', value=results.print_file)
+                input#existing_shapefile(type='hidden' name='existing_shapefile' value=results.print_file)
 
-            p: input(type='file', id='print_file', name='print_file')
+            p: input#print_file(type='file' name='print_file')
 
         .col.s12.l6
           label Patron ID
-          input(type='text' id='patron_id' placeholder='Patron ID (required)' name='patron_id' value=patronID)
+          input#patron_id(type='text' placeholder='Patron ID (required)' name='patron_id' value=patronID)
           label Patron Grade
-          input(list='grade', id='patron_grade', placeholder='Patron Grade (required)', name='patron_grade' value=patronGRD)
+          input#patron_grade(list='grade' placeholder='Patron Grade (required)' name='patron_grade' value=patronGRD)
           datalist#grade
             option(value='Undergraduate')
             option(value='Graduate')
             option(value='Faculty')
             option(value='Other')
           label Patron Department
-          input(type='text', id='patron_department', placeholder='Patron Department (required)', name='patron_department' value=patronDPT)
+          input#patron_department(type='text' placeholder='Patron Department (required)' name='patron_department' value=patronDPT)
           label Tech ID
-          input(type='text', id='tech_id', placeholder='Tech ID (required)', name='tech_id' value=techID)
+          input#tech_id(type='text' placeholder='Tech ID (required)' name='tech_id' value=techID)
           .row
             .col.s12.l6
               label Date/Time Started
-              input#datetime-start(type='datetime-local' name='date_started' value=started)
+              input#datetime-start(type='text' name='date_started' value=started)
             .col.s12.l6
               label Date/Time Finished
-              input#datetime-finish(type='datetime-local' name='date_finished' value=finished)
+              input#datetime-finish(type='text' name='date_finished' value=finished)
 
           label Printer Setup
-          textarea(id='printer_setup', placeholder='Printer Settings: \n\tnozzle size: \n\tfilament type: \n\tfilament color:', name='printer_setup') #{printer}
+          textarea#printer_setup(placeholder='Printer Settings: \n\tnozzle size: \n\tfilament type: \n\tfilament color:' name='printer_setup') #{printer}
           label Notes
-          textarea(id='notes', placeholder='Notes', name='notes') #{notes}
+          textarea#notes(placeholder='Notes' name='notes') #{notes}
           .row
             .col.s6
-              a.btn.waves-effect.waves-light.red.modal-trigger(href='#modal1') Delete
-              #modal1.modal
+              a.btn.waves-effect.waves-light.red.modal-trigger(href='#delete-modal') Delete
+              #delete-modal.modal
                 .modal-content
                   h4 Delete Item
                   p Are you sure?
@@ -87,4 +87,4 @@ block content
                   a.modal-action.modal-close.waves-effect.waves-yellow.btn-flat(href='#!') Cancel
                   a.modal-action.modal-close.waves-effect.waves-red.btn-flat(href='/detail/' + printID + '/delete') Delete
             .col.s6
-              input.btn.waves-effect.waves-light.green(type='submit', id='submit', name='submit' value='Update')
+              input.btn.waves-effect.waves-light.green#submit(type='submit' name='submit' value='Update')
