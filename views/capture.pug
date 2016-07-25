@@ -46,11 +46,11 @@ block content
             .col.s12.l6
               div.input-field(data-role='fieldcontain')
                 label.active(for='date_started'): strong Date/Time Started (required)
-                input.validate.datepicker#date_started(type='datetime-local' name='date_started' value=started)
+                input.validate.date_started#datetime-start(type='text' name='date_started' value=started)
             .col.s12.l6
               div.input-field(data-role='fieldcontain')
                 label.active(for='date_finished'): strong Date/Time Finished (required)
-                input.validate.datepicker#date_finished(type='datetime-local' name='date_finished' value=finished)
+                input.validate.date_finished#datetime-finish(type='text' name='date_finished' value=finished)
 
           div.input-field(data-role='fieldcontain')
             label(for='printer_setup') Printer Settings

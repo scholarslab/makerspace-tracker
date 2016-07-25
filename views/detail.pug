@@ -67,10 +67,10 @@ block content
           .row
             .col.s12.l6
               label Date/Time Started
-              input(type='datetime-local', id='date_started', name='date_started' value=started)
+              input#datetime-start(type='datetime-local' name='date_started' value=started)
             .col.s12.l6
               label Date/Time Finished
-              input(type='datetime-local', id='date_finished', name='date_finished' value=finished)
+              input#datetime-finish(type='datetime-local' name='date_finished' value=finished)
 
           label Printer Setup
           textarea(id='printer_setup', placeholder='Printer Settings: \n\tnozzle size: \n\tfilament type: \n\tfilament color:', name='printer_setup') #{printer}
