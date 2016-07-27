@@ -20,6 +20,7 @@ block content
     - var notes = fields.notes
   else
     - var started = moment().format('YYYY-MM-DD[T]kk:mm');
+    - var finished = moment().format('YYYY-MM-DD[T]kk:mm');
 
   #print-form
     form(action='/capture', method='post', enctype='multipart/form-data')
